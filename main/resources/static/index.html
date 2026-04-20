@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>NOVA | Minimalist Bookstore</title>
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #f8fafc;
+            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+            color: #0f172a;
+            line-height: 1.4;
+        }
+
+        .header {
+            background: #ffffff;
+            padding: 0 32px;
+            height: 70px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #e9edf2;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background-color: rgba(255,255,255,0.96);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+            font-size: 1.35rem;
+            letter-spacing: -0.3px;
+            color: #1e293b;
+        }
+
+        .logo i {
+            background: linear-gradient(135deg, #e95e2e, #f97316);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            font-size: 1.6rem;
+        }
+
+        .user-tag {
+            background: #f1f5f9;
+            padding: 6px 14px;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: #1e293b;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 32px 28px;
+        }
+
+        .catalogue-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            flex-wrap: wrap;
+            margin-bottom: 1rem;
+        }
+
+        .catalogue-header h2 {
+            font-weight: 600;
+            font-size: 1.8rem;
+            letter-spacing: -0.4px;
+            color: #0f172a;
+        }
+
+        #adminPanel {
+            background: #ffffff;
+            border-radius: 24px;
+            padding: 20px 24px;
+            margin: 20px 0 28px 0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02), 0 1px 2px rgba(0, 0, 0, 0.03);
+            border: 1px solid #edf2f7;
+        }
+
+        #adminPanel h3 {
+            font-size: 1.2rem;
+            font-weight: 500;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .admin-form {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: flex-start;
+        }
+
+        .admin-form input,
+        .admin-form textarea {
+            padding: 12px 16px;
+            border: 1px solid #e2e8f0;
+            border-radius: 60px;
+            font-size: 0.85rem;
+            background: #ffffff;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.2s;
+        }
+
+        .admin-form input:focus,
+        .admin-form textarea:focus {
+            outline: none;
+            border-color: #f97316;
+            box-shadow: 0 0 0 3px rgba(249,115,22,0.1);
+        }
+
+        .admin-form input {
+            flex: 1 1 180px;
+        }
+
+        .admin-form .description-field {
+            flex: 2 1 260px;
+            border-radius: 24px;
+            resize: vertical;
+            min-height: 70px;
+            font-size: 0.85rem;
+            line-height: 1.4;
+        }
+
+        .admin-form button {
+            background: #f97316;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 60px;
+            font-weight: 600;
+            color: white;
+            cursor: pointer;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: 0.2s;
+        }
+
+        .admin-form button:hover {
+            background: #ea580c;
+            transform: scale(0.98);
+        }
+
+        .search-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 28px 0 32px 0;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .search-box {
+            display: flex;
+            align-items: center;
+            background: white;
+            padding: 8px 18px;
+            border-radius: 60px;
+            border: 1px solid #e2e8f0;
+            flex: 1;
+            max-width: 460px;
+        }
+
+        .search-box i {
+            color: #f97316;
+            margin-right: 12px;
+        }
+
+        .search-box input {
+            border: none;
+            outline: none;
+            flex: 1;
+            background: transparent;
+            font-size: 0.9rem;
+            padding: 12px 0;
+        }
+
+        .btn {
+            border: none;
+            padding: 10px 22px;
+            border-radius: 60px;
+            font-weight: 500;
+            cursor: pointer;
+            font-size: 0.85rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-search {
+            background: #0f172a;
+            color: white;
+        }
+
+        .btn-search:hover {
+            background: #1e293b;
+        }
+
+        .btn-reset {
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            color: #1e293b;
+        }
+
+        .btn-reset:hover {
+            background: #f1f5f9;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 28px;
+            margin-top: 20px;
+        }
+
+        .card {
+            background: #ffffff;
+            border-radius: 24px;
+            overflow: hidden;
+            transition: all 0.25s ease;
+            box-shadow: 0 5px 18px rgba(0, 0, 0, 0.02), 0 0 0 1px #f0f2f5;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        /* Customer view: taller cards with bigger description area */
+        .card.customer-view {
+            min-height: 500px;
+        }
+
+        /* Admin view: more compact */
+        .card.admin-view {
+            min-height: 460px;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 30px -12px rgba(0, 0, 0, 0.1);
+        }
+
+        .book-image {
+            width: 100%;
+            background: #f9fafc;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px 12px 12px 12px;
+            min-height: 190px;
+        }
+
+        .book-image img {
+            width: 120px;
+            height: 170px;
+            object-fit: cover;
+            border-radius: 12px;
+            box-shadow: 0 8px 18px rgba(0, 0, 0, 0.06);
+            background: #eef2ff;
+        }
+
+        .card-content {
+            padding: 12px 18px 18px 18px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .title {
+            font-weight: 700;
+            font-size: 1rem;
+            line-height: 1.35;
+            color: #0f172a;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .author {
+            font-size: 0.75rem;
+            color: #5b6e8c;
+            margin: 6px 0 4px 0;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        /* Description styles - different for customer vs admin */
+        .description-preview {
+            font-size: 0.75rem;
+            color: #475569;
+            line-height: 1.5;
+            background: #f8fafc;
+            padding: 8px 10px;
+            border-radius: 14px;
+            margin: 8px 0;
+        }
+
+        /* Customer view: show more lines, bigger text */
+        .customer-view .description-preview {
+            font-size: 0.8rem;
+            line-height: 1.55;
+            padding: 10px 12px;
+            background: #f1f5f9;
+            display: -webkit-box;
+            -webkit-line-clamp: 4;
+            line-clamp: 4;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            min-height: 85px;
+        }
+
+        /* Admin view: compact, fewer lines */
+        .admin-view .description-preview {
+            font-size: 0.7rem;
+            line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            min-height: 48px;
+        }
+
+        /* If description is empty, show subtle placeholder */
+        .description-preview.empty-desc {
+            color: #94a3b8;
+            font-style: italic;
+        }
+
+        .price {
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: #f97316;
+            margin: 8px 0 12px 0;
+        }
+
+        .buy-btn {
+            width: 100%;
+            padding: 10px 0;
+            border: none;
+            border-radius: 40px;
+            background: #0f172a;
+            color: white;
+            font-weight: 600;
+            font-size: 0.8rem;
+            cursor: pointer;
+            margin-top: auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: 0.2s;
+        }
+
+        .buy-btn:hover {
+            background: #f97316;
+        }
+
+        .admin-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .small-btn {
+            flex: 1;
+            font-size: 0.7rem;
+            padding: 7px 0;
+            border-radius: 32px;
+            border: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            transition: 0.2s;
+        }
+
+        .edit {
+            background: #eef2ff;
+            color: #2563eb;
+        }
+
+        .edit:hover {
+            background: #2563eb;
+            color: white;
+        }
+
+        .delete {
+            background: #fef2f2;
+            color: #dc2626;
+        }
+
+        .delete:hover {
+            background: #dc2626;
+            color: white;
+        }
+
+        .empty-message {
+            text-align: center;
+            padding: 60px 20px;
+            background: white;
+            border-radius: 40px;
+            color: #6c7a91;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 60px;
+            padding: 20px;
+            font-size: 0.75rem;
+            color: #8b9ab0;
+            border-top: 1px solid #eef2f8;
+        }
+
+        @media (min-width: 1400px) {
+            .grid { grid-template-columns: repeat(5, 1fr); }
+        }
+        @media (min-width: 1024px) and (max-width: 1399px) {
+            .grid { grid-template-columns: repeat(4, 1fr); }
+        }
+        @media (max-width: 700px) {
+            .admin-form .description-field {
+                flex: 1 1 100%;
+            }
+            .customer-view .description-preview {
+                -webkit-line-clamp: 3;
+                line-clamp: 3;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<header class="header">
+    <div class="logo">
+        <i class="fas fa-book-open"></i>
+        <span>novabooks</span>
+    </div>
+    <div class="user-tag" id="user"></div>
+</header>
+
+<div class="container">
+    <div class="catalogue-header">
+        <h2><i class="fas fa-compass"></i> library</h2>
+    </div>
+
+    <!-- Admin Panel with Description Textarea -->
+    <div id="adminPanel" style="display: none;">
+        <h3><i class="fas fa-pen-alt"></i> Manage inventory</h3>
+        <div class="admin-form">
+            <input type="text" id="title" placeholder="Title" autocomplete="off">
+            <input type="text" id="author" placeholder="Author" autocomplete="off">
+            <input type="text" id="price" placeholder="Price (₱)" autocomplete="off">
+            <input type="text" id="category" placeholder="Category" autocomplete="off">
+            <textarea id="description" class="description-field" placeholder="Book description / synopsis..." rows="2"></textarea>
+            <button onclick="addBook()"><i class="fas fa-plus"></i> Add book</button>
+        </div>
+    </div>
+
+    <div class="search-wrapper">
+        <div class="search-box">
+            <i class="fas fa-search"></i>
+            <input id="searchInput" placeholder="Search by title, author or category...">
+        </div>
+        <button class="btn btn-search" onclick="searchBooks()"><i class="fas fa-magnifying-glass"></i> Search</button>
+        <button class="btn btn-reset" onclick="loadBooks()"><i class="fas fa-arrow-rotate-right"></i> Reset</button>
+    </div>
+
+    <div class="grid" id="bookGrid"></div>
+</div>
+<footer>© novabooks — minimalist reader's sanctuary</footer>
+
+<script>
+    // ---------- USER AUTH ----------
+    let currentUser = null;
+    let isAdmin = false;
+
+    try {
+        const stored = localStorage.getItem("user");
+        if (stored) {
+            currentUser = JSON.parse(stored);
+            isAdmin = currentUser.admin === true;
+        }
+    } catch(e) {}
+
+    // Fallback demo user (admin for testing, but we respect actual role)
+    if (!currentUser) {
+        currentUser = { name: "Alex Morgan", email: "alex@novabooks.com", admin: true };
+        localStorage.setItem("user", JSON.stringify(currentUser));
+        isAdmin = true;
+    } else {
+        isAdmin = currentUser.admin === true;
+    }
+
+    // Update header display
+    document.getElementById("user").innerHTML = `<i class="fas fa-circle-user"></i> ${currentUser.name}${isAdmin ? ' · admin' : ''}`;
+    if (isAdmin) {
+        document.getElementById("adminPanel").style.display = "block";
+    }
+
+    const gridEl = document.getElementById("bookGrid");
+    const API_BASE = "http://localhost:8080/api/books";
+
+    // ---------- OPEN LIBRARY COVER CACHE ----------
+    const coverCache = new Map();
+
+    async function fetchCoverIdFromOpenLibrary(title) {
+        if (!title) return null;
+        const cacheKey = title.toLowerCase().trim();
+        if (coverCache.has(cacheKey)) return coverCache.get(cacheKey);
+
+        try {
+            const searchUrl = `https://openlibrary.org/search.json?title=${encodeURIComponent(title)}&limit=1`;
+            const response = await fetch(searchUrl);
+            const data = await response.json();
+            if (data.docs && data.docs.length > 0 && data.docs[0].cover_i) {
+                const coverId = data.docs[0].cover_i;
+                coverCache.set(cacheKey, coverId);
+                return coverId;
+            }
+        } catch (error) {
+            console.warn(`Failed to fetch cover for "${title}":`, error);
+        }
+        coverCache.set(cacheKey, null);
+        return null;
+    }
+
+    function getCoverUrlFromId(coverId, size = 'M') {
+        if (!coverId) return null;
+        return `https://covers.openlibrary.org/b/id/${coverId}-${size}.jpg`;
+    }
+
+    async function loadBookCover(imgElement, title) {
+        const coverId = await fetchCoverIdFromOpenLibrary(title);
+        if (coverId) {
+            const coverUrl = getCoverUrlFromId(coverId, 'M');
+            imgElement.src = coverUrl;
+            imgElement.onerror = () => generateFallbackCover(imgElement, title);
+        } else {
+            generateFallbackCover(imgElement, title);
+        }
+    }
+
+    function generateFallbackCover(imgElement, title) {
+        const canvas = document.createElement('canvas');
+        canvas.width = 120;
+        canvas.height = 170;
+        const ctx = canvas.getContext('2d');
+        const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+        gradient.addColorStop(0, '#fdf8f0');
+        gradient.addColorStop(1, '#f1ede8');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#f97316';
+        ctx.font = `bold ${canvas.width * 0.45}px 'Inter', system-ui`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        const initial = title && title.length > 0 ? title.charAt(0).toUpperCase() : '📖';
+        ctx.fillText(initial, canvas.width/2, canvas.height/2 - 8);
+        ctx.fillStyle = '#d4c9b8';
+        ctx.font = `10px 'Inter'`;
+        ctx.fillText("✦", canvas.width/2, canvas.height - 28);
+        imgElement.src = canvas.toDataURL();
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        }).replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, function(c) {
+            return c;
+        });
+    }
+
+    // Helper to format description preview
+    function formatDescription(description, isAdminUser) {
+        if (!description || description.trim() === "") {
+            return '<span class="description-preview empty-desc"><i class="far fa-file-alt"></i> no synopsis available</span>';
+        }
+
+        const cleanDesc = escapeHtml(description.trim());
+        // For customers, show more text (up to 180 chars with ellipsis via CSS line-clamp)
+        // For admin, show shorter preview
+        if (isAdminUser) {
+            // Admin: shorter preview, but full text is still there (clamped via CSS)
+            return `<div class="description-preview"><i class="fas fa-quote-left" style="font-size: 8px; opacity: 0.6; margin-right: 4px;"></i> ${cleanDesc}</div>`;
+        } else {
+            // Customer: bigger, more prominent description area
+            return `<div class="description-preview"><i class="fas fa-quote-left" style="font-size: 10px; opacity: 0.7; margin-right: 5px;"></i> ${cleanDesc}</div>`;
+        }
+    }
+
+    // ---------- RENDER BOOKS with dynamic description sizing based on user role ----------
+    async function renderBooks(books) {
+        if (!gridEl) return;
+        gridEl.innerHTML = "";
+
+        if (!books || books.length === 0) {
+            gridEl.innerHTML = `<div class="empty-message"><i class="fas fa-book-open"></i><p>no books found</p></div>`;
+            return;
+        }
+
+        for (const book of books) {
+            const card = document.createElement("div");
+            // Apply different CSS class based on user role
+            card.className = `card ${isAdmin ? 'admin-view' : 'customer-view'}`;
+
+            const adminActionsHtml = isAdmin ? `
+                <div class="admin-actions">
+                    <button class="small-btn edit" onclick="editBook(${book.id})"><i class="fas fa-edit"></i> Edit</button>
+                    <button class="small-btn delete" onclick="deleteBook(${book.id})"><i class="fas fa-trash-alt"></i> Delete</button>
+                </div>
+            ` : "";
+
+            const descriptionHtml = formatDescription(book.description, isAdmin);
+
+            card.innerHTML = `
+                <div class="book-image">
+                    <img class="book-cover-img" alt="${escapeHtml(book.title)}" data-title="${escapeHtml(book.title)}" style="width:120px; height:170px;">
+                </div>
+                <div class="card-content">
+                    <div class="title">${escapeHtml(book.title)}</div>
+                    <div class="author"><i class="fas fa-feather-alt"></i> ${escapeHtml(book.author)}</div>
+                    ${descriptionHtml}
+                    <div class="price">₱${parseFloat(book.price).toFixed(2)}</div>
+                    <button class="buy-btn" onclick="buyBook(${book.id}, '${escapeHtml(book.title)}')"><i class="fas fa-shopping-bag"></i> Purchase</button>
+                    ${adminActionsHtml}
+                </div>
+            `;
+
+            gridEl.appendChild(card);
+
+            const imgElement = card.querySelector('.book-cover-img');
+            if (imgElement && book.title) {
+                loadBookCover(imgElement, book.title);
+            }
+        }
+    }
+
+    // ---------- API FUNCTIONS ----------
+    async function loadBooks() {
+        try {
+            const res = await fetch(API_BASE);
+            if (!res.ok) throw new Error();
+            const books = await res.json();
+            renderBooks(books);
+        } catch (err) {
+            gridEl.innerHTML = `<div class="empty-message"><i class="fas fa-cloud-slash"></i> Could not connect to server. Ensure backend is running on port 8080.</div>`;
+        }
+    }
+
+    async function searchBooks() {
+        const query = document.getElementById("searchInput").value.trim();
+        if (!query) {
+            loadBooks();
+            return;
+        }
+        try {
+            let res = await fetch(`${API_BASE}/search?title=${encodeURIComponent(query)}`);
+            let books = await res.json();
+            if (!books.length) {
+                res = await fetch(`${API_BASE}/author?author=${encodeURIComponent(query)}`);
+                books = await res.json();
+            }
+            if (!books.length) {
+                res = await fetch(`${API_BASE}/category?category=${encodeURIComponent(query)}`);
+                books = await res.json();
+            }
+            renderBooks(books);
+        } catch (err) {
+            renderBooks([]);
+        }
+    }
+
+    // ADD BOOK with description field included
+    async function addBook() {
+        if (!isAdmin) return;
+        const titleInp = document.getElementById("title");
+        const authorInp = document.getElementById("author");
+        const priceInp = document.getElementById("price");
+        const catInp = document.getElementById("category");
+        const descInp = document.getElementById("description");
+
+        const newBook = {
+            title: titleInp.value.trim(),
+            author: authorInp.value.trim(),
+            price: parseFloat(priceInp.value),
+            category: catInp.value.trim() || "General",
+            description: descInp.value.trim() || ""
+        };
+
+        if (!newBook.title || !newBook.author || isNaN(newBook.price) || newBook.price <= 0) {
+            alert("Please fill title, author and valid price (positive number)");
+            return;
+        }
+
+        try {
+            await fetch(API_BASE, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(newBook)
+            });
+            // Clear form fields after successful addition
+            titleInp.value = "";
+            authorInp.value = "";
+            priceInp.value = "";
+            catInp.value = "";
+            descInp.value = "";
+            loadBooks();
+        } catch (err) {
+            alert("Error adding book. Make sure backend is running.");
+        }
+    }
+
+    async function deleteBook(id) {
+        if (!isAdmin || !confirm("Delete this book permanently?")) return;
+        try {
+            await fetch(`${API_BASE}/${id}`, { method: "DELETE" });
+            loadBooks();
+        } catch (err) {
+            alert("Delete failed");
+        }
+    }
+
+    async function editBook(id) {
+        if (!isAdmin) return;
+        const newTitle = prompt("Edit title:");
+        const newAuthor = prompt("Edit author:");
+        const newPrice = prompt("Edit price (numeric):");
+        const newCategory = prompt("Edit category:");
+        const newDescription = prompt("Edit description / synopsis:");
+
+        if (newTitle && newAuthor && newPrice && !isNaN(parseFloat(newPrice))) {
+            try {
+                await fetch(`${API_BASE}/${id}`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        title: newTitle,
+                        author: newAuthor,
+                        price: parseFloat(newPrice),
+                        category: newCategory || "General",
+                        description: newDescription || ""
+                    })
+                });
+                loadBooks();
+            } catch (err) {
+                alert("Edit failed");
+            }
+        } else {
+            alert("Invalid input fields");
+        }
+    }
+
+    function buyBook(id, title) {
+        alert(`✨ "${title}" added to cart · ID: ${id}\nMinimalist checkout experience coming soon.`);
+    }
+
+    // Expose global functions
+    window.loadBooks = loadBooks;
+    window.searchBooks = searchBooks;
+    window.addBook = addBook;
+    window.deleteBook = deleteBook;
+    window.editBook = editBook;
+    window.buyBook = buyBook;
+
+    // initial load
+    loadBooks();
+</script>
+</body>
+</html>
