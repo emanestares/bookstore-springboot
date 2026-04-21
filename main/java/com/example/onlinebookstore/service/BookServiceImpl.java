@@ -55,7 +55,7 @@ public class BookServiceImpl implements BookService {
         book.setCategory(updated.getCategory());
         book.setDescription(updated.getDescription());
         book.setStock(updated.getStock());
-        book.setCoverImage(updated.getCoverImage());
+        // coverImage removed — covers are fetched from Open Library API on the frontend
         return bookRepository.save(book);
     }
 

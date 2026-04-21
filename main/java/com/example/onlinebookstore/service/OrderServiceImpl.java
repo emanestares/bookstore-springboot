@@ -91,6 +91,33 @@ public class OrderServiceImpl implements OrderService {
     public Order updateOrderStatus(Long orderId, Order.OrderStatus status) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Order not found: " + orderId));
+
+        Order.OrderStatus previousStatus = order.getStatus();
+
+        // Restore stock when transitioning TO declined from a non-declined state
+        if (status == Order.OrderStatus.DECLINED && previousStatus != Order.OrderStatus.DECLINED) {
+            for (OrderItem item : order.getItems()) {
+                bookRepository.findById(item.getBookId()).ifPresent(book -> {
+                    book.setStock(book.getStock() + item.getQuantity());
+                    bookRepository.save(book);
+                });
+            }
+        }
+
+        // Re-deduct stock when transitioning FROM declined back to an active state
+        if (previousStatus == Order.OrderStatus.DECLINED && status != Order.OrderStatus.DECLINED) {
+            for (OrderItem item : order.getItems()) {
+                Book book = bookRepository.findById(item.getBookId())
+                        .orElseThrow(() -> new RuntimeException("Book not found: " + item.getBookId()));
+                if (book.getStock() < item.getQuantity()) {
+                    throw new RuntimeException("Not enough stock to reactivate order for \"" + book.getTitle() +
+                            "\" — only " + book.getStock() + " left");
+                }
+                book.setStock(book.getStock() - item.getQuantity());
+                bookRepository.save(book);
+            }
+        }
+
         order.setStatus(status);
         return orderRepository.save(order);
     }

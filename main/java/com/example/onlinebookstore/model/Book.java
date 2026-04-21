@@ -31,11 +31,7 @@ public class Book {
 
     private String category;
 
-    // Added: stock quantity for cart validation
     @Min(0)
     @Column(nullable = false)
     private int stock = 0;
-
-    // Added: optional cover image URL
-    private String coverImage;
 }

@@ -285,7 +285,9 @@ function renderTable(){
   const status = document.getElementById('statusFilter').value;
 
   const filtered = allOrders.filter(o=>{
-    const matchKw     = !kw || String(o.id).includes(kw) || String(o.userId).includes(kw);
+    const userName = (userCache[o.userId]?.name || '').toLowerCase();
+    const userEmail = (userCache[o.userId]?.email || '').toLowerCase();
+    const matchKw = !kw || String(o.id).includes(kw) || userName.includes(kw) || userEmail.includes(kw);
     const matchStatus = !status || o.status === status;
     return matchKw && matchStatus;
   });
