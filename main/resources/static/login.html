@@ -3,17 +3,18 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>NOVA Books — Create Account</title>
+<title>NOVA Books — Sign In</title>
 <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
 <style>
 :root{--bg:#09090b;--surface:#111113;--surface2:#18181b;--border:rgba(255,255,255,0.08);--accent:#2563eb;--accent-h:#1d4ed8;--text:#fafafa;--text2:#a1a1aa;--text3:#52525b;--danger:#ef4444;--success:#22c55e;}
 body.light{--bg:#faf7f2;--surface:#fff;--surface2:#f5f0e8;--border:rgba(0,0,0,0.09);--text:#1a1a1a;--text2:#6b7280;--text3:#9ca3af;}
 *{margin:0;padding:0;box-sizing:border-box;}
 body{min-height:100vh;background:var(--bg);font-family:'Inter',system-ui,sans-serif;color:var(--text);display:flex;flex-direction:column;align-items:center;justify-content:center;-webkit-font-smoothing:antialiased;transition:background .3s,color .3s;}
+/* bookshelf stripe at top */
 body::before{content:'';position:fixed;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,#1e3a5f,#2563eb,#2d1b4e,#3d2314,#0f3460);z-index:10;}
 .card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:2.5rem 2.25rem;width:100%;max-width:400px;margin:1.5rem;animation:rise .4s ease both;position:relative;z-index:1;}
 @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
-.brand{text-align:center;margin-bottom:2rem;}
+.brand{text-align:center;margin-bottom:2.25rem;}
 .brand-icon{font-family:'Lora',serif;font-size:2rem;font-weight:700;color:var(--text);letter-spacing:-0.03em;}
 .brand-icon sup{font-size:0.6rem;font-family:'Inter',sans-serif;letter-spacing:0.12em;text-transform:uppercase;color:var(--text2);vertical-align:super;}
 .brand-sub{font-size:0.82rem;color:var(--text2);margin-top:0.25rem;}
@@ -22,7 +23,6 @@ body::before{content:'';position:fixed;top:0;left:0;right:0;height:4px;backgroun
 .divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border);}
 .field{display:flex;flex-direction:column;gap:0.4rem;margin-bottom:1rem;}
 .field label{font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:0.07em;color:var(--text2);}
-.field label span{text-transform:none;font-weight:400;letter-spacing:0;color:var(--text3);}
 .field input{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:0.72rem 1rem;color:var(--text);font-size:0.9rem;outline:none;transition:border-color .2s;}
 .field input:focus{border-color:var(--accent);}
 .field input::placeholder{color:var(--text3);}
@@ -37,6 +37,7 @@ body::before{content:'';position:fixed;top:0;left:0;right:0;height:4px;backgroun
 .footer-txt a{color:var(--accent);text-decoration:none;}
 .footer-txt a:hover{text-decoration:underline;}
 .theme-row{position:fixed;top:0.75rem;right:1rem;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:0.3rem 0.6rem;font-size:0.85rem;cursor:pointer;color:var(--text2);z-index:20;}
+.quote{text-align:center;font-family:'Lora',serif;font-style:italic;color:var(--text3);font-size:0.8rem;margin-top:1.75rem;line-height:1.6;padding-top:1.25rem;border-top:1px solid var(--border);}
 </style>
 </head>
 <body>
@@ -45,35 +46,33 @@ body::before{content:'';position:fixed;top:0;left:0;right:0;height:4px;backgroun
 <div class="card">
   <div class="brand">
     <div class="brand-icon">Nova<sup>Books</sup></div>
-    <div class="brand-sub">Create your reader account</div>
+    <div class="brand-sub">Sign in to your account</div>
   </div>
 
-  <div class="divider"><span>Join the community</span></div>
+  <div class="divider"><span>Welcome back</span></div>
 
   <div class="alert" id="alert"></div>
 
   <div class="field">
-    <label>Full Name</label>
-    <input type="text" id="name" placeholder="Juan Dela Cruz"/>
-  </div>
-  <div class="field">
     <label>Email Address</label>
-    <input type="email" id="email" placeholder="you@email.com"/>
+    <input type="email" id="email" placeholder="you@email.com" autocomplete="email"/>
   </div>
   <div class="field">
-    <label>Password <span>(min. 6 characters)</span></label>
-    <input type="password" id="password" placeholder="••••••••"/>
+    <label>Password</label>
+    <input type="password" id="password" placeholder="••••••••" autocomplete="current-password"/>
   </div>
 
-  <button class="btn" id="signupBtn" onclick="doSignup()">Create Account</button>
+  <button class="btn" id="loginBtn" onclick="doLogin()">Sign In</button>
 
-  <p class="footer-txt">Already a member? <a href="/login.html">Sign in</a></p>
+  <p class="footer-txt">No account? <a href="/signup.html">Create one here</a></p>
+
+  <div class="quote">"A reader lives a thousand lives before he dies."<br/>— George R.R. Martin</div>
 </div>
 
 <script>
 function initTheme(){
   if(localStorage.getItem('theme')==='light') document.body.classList.add('light');
-  document.getElementById('themeBtn').textContent = document.body.classList.contains('light')?'🌙':'🌓';
+  document.getElementById('themeBtn').textContent = document.body.classList.contains('light')? '🌙':'🌓';
 }
 function toggleTheme(){
   document.body.classList.toggle('light');
@@ -82,25 +81,24 @@ function toggleTheme(){
 }
 initTheme();
 
-async function doSignup(){
-  const name=document.getElementById('name').value.trim();
-  const email=document.getElementById('email').value.trim();
-  const password=document.getElementById('password').value;
-  const btn=document.getElementById('signupBtn');
+document.addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); });
+
+async function doLogin(){
+  const email    = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+  const btn      = document.getElementById('loginBtn');
   showAlert('','');
+  if(!email||!password){ showAlert('Please fill in all fields.','error'); return; }
 
-  if(!name||!email||!password){ showAlert('All fields are required.','error'); return; }
-  if(password.length<6){ showAlert('Password must be at least 6 characters.','error'); return; }
-
-  btn.disabled=true; btn.textContent='Creating account…';
+  btn.disabled=true; btn.textContent='Signing in…';
   try{
-    const res  = await fetch('/api/auth/register',{ method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name,email,password}) });
+    const res  = await fetch('/api/auth/login',{ method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({email,password}) });
     const data = await res.json();
-    if(!res.ok){ showAlert(data.message||'Registration failed.','error'); return; }
-    showAlert('Account created! Redirecting to login…','success');
-    setTimeout(()=>window.location.href='/login.html',1500);
+    if(!res.ok){ showAlert(data.message||'Invalid credentials.','error'); return; }
+    localStorage.setItem('user', JSON.stringify(data));
+    window.location.href='/index.html';
   } catch{ showAlert('Cannot reach server. Is it running?','error'); }
-  finally{ btn.disabled=false; btn.textContent='Create Account'; }
+  finally{ btn.disabled=false; btn.textContent='Sign In'; }
 }
 
 function showAlert(msg,type){

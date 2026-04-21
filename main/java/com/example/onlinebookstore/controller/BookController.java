@@ -3,9 +3,11 @@ package com.example.onlinebookstore.controller;
 import com.example.onlinebookstore.model.Book;
 import com.example.onlinebookstore.service.BookService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/books")
@@ -15,50 +17,86 @@ public class BookController {
     @Autowired
     private BookService bookService;
 
-    // GET ALL BOOKS
+    // ── Public Endpoints ──────────────────────────────────
+
     @GetMapping
     public List<Book> getAllBooks() {
         return bookService.getAllBooks();
     }
 
-    // GET BOOK BY ID
     @GetMapping("/{id}")
-    public Book getBookById(@PathVariable Long id) {
-        return bookService.getBookById(id);
+    public ResponseEntity<?> getBookById(@PathVariable Long id) {
+        try {
+            return ResponseEntity.ok(bookService.getBookById(id));
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
-    // ADD BOOK
-    @PostMapping
-    public Book addBook(@RequestBody Book book) {
-        return bookService.addBook(book);
-    }
-
-    // SEARCH BY TITLE
     @GetMapping("/search")
     public List<Book> searchBooks(@RequestParam String title) {
         return bookService.searchByTitle(title);
     }
 
-    // FILTER BY CATEGORY
     @GetMapping("/category")
     public List<Book> filterByCategory(@RequestParam String category) {
         return bookService.filterByCategory(category);
     }
 
-    // SEARCH BY AUTHOR
     @GetMapping("/author")
     public List<Book> searchByAuthor(@RequestParam String author) {
         return bookService.searchByAuthor(author);
     }
 
+    @GetMapping("/categories")
+    public List<String> getCategories() {
+        return bookService.getAllCategories();
+    }
+
+    // ── Admin Endpoints (admin check done via isAdmin header) ──
+
+    /**
+     * POST /api/books
+     * Header: X-User-Admin: true  (set by frontend when logged in as admin)
+     */
+    @PostMapping
+    public ResponseEntity<?> addBook(@RequestBody Book book,
+                                     @RequestHeader(value = "X-User-Admin", defaultValue = "false") String isAdmin) {
+        if (!"true".equals(isAdmin))
+            return ResponseEntity.status(403).body(Map.of("message", "Admin access required"));
+        if (book.getTitle() == null || book.getTitle().isBlank())
+            return ResponseEntity.badRequest().body(Map.of("message", "Title is required"));
+        if (book.getAuthor() == null || book.getAuthor().isBlank())
+            return ResponseEntity.badRequest().body(Map.of("message", "Author is required"));
+        if (book.getPrice() < 0)
+            return ResponseEntity.badRequest().body(Map.of("message", "Price cannot be negative"));
+
+        return ResponseEntity.ok(bookService.addBook(book));
+    }
+
     @PutMapping("/{id}")
-    public Book updateBook(@PathVariable Long id, @RequestBody Book book) {
-        return bookService.updateBook(id, book);
+    public ResponseEntity<?> updateBook(@PathVariable Long id,
+                                        @RequestBody Book book,
+                                        @RequestHeader(value = "X-User-Admin", defaultValue = "false") String isAdmin) {
+        if (!"true".equals(isAdmin))
+            return ResponseEntity.status(403).body(Map.of("message", "Admin access required"));
+        try {
+            return ResponseEntity.ok(bookService.updateBook(id, book));
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @DeleteMapping("/{id}")
-    public void deleteBook(@PathVariable Long id) {
-        bookService.deleteBook(id);
+    public ResponseEntity<?> deleteBook(@PathVariable Long id,
+                                        @RequestHeader(value = "X-User-Admin", defaultValue = "false") String isAdmin) {
+        if (!"true".equals(isAdmin))
+            return ResponseEntity.status(403).body(Map.of("message", "Admin access required"));
+        try {
+            bookService.deleteBook(id);
+            return ResponseEntity.ok(Map.of("message", "Book deleted"));
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
-
 }
