@@ -16,10 +16,6 @@ public class AuthController {
     @Autowired
     private UserService userService;
 
-    /**
-     * POST /api/auth/register
-     * Body: { "name": "Juan", "email": "juan@email.com", "password": "pass123" }
-     */
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody User user) {
         try {
@@ -38,11 +34,6 @@ public class AuthController {
         }
     }
 
-    /**
-     * POST /api/auth/login
-     * Body: { "email": "juan@email.com", "password": "pass123" }
-     * Returns the User object (password hidden) — client stores this in localStorage.
-     */
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody User user) {
         try {
@@ -51,6 +42,25 @@ public class AuthController {
             return ResponseEntity.ok(loggedIn);
         } catch (RuntimeException e) {
             return ResponseEntity.status(401).body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    /**
+     * GET /api/auth/users/{id}
+     * Admin: fetch a user's name and email by ID (password never returned).
+     */
+    @GetMapping("/users/{id}")
+    public ResponseEntity<?> getUserById(
+            @PathVariable Long id,
+            @RequestHeader(value = "X-User-Admin", defaultValue = "false") String isAdmin) {
+        if (!"true".equals(isAdmin))
+            return ResponseEntity.status(403).body(Map.of("message", "Admin access required"));
+        try {
+            User user = userService.getUserById(id);
+            user.setPassword(null);
+            return ResponseEntity.ok(user);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(404).body(Map.of("message", e.getMessage()));
         }
     }
 }

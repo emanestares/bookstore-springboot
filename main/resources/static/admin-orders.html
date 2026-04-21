@@ -198,11 +198,25 @@ td{padding:0.9rem 1.1rem;font-size:0.85rem;color:var(--text);vertical-align:midd
 <script>
 'use strict';
 let allOrders = [];
+const userCache = {}; // { userId: { name, email } }
 const spineColors = ['#1e3a5f','#2d1b4e','#0f3460','#3d2314','#0d2137','#3d1a2d','#1a3a2d','#1a1a2e'];
 
 function getUser(){ try{ return JSON.parse(localStorage.getItem('user')); }catch{ return null; } }
 function logout(){ localStorage.removeItem('user'); localStorage.removeItem('cart'); window.location.href='/login.html'; }
 function esc(s){ const d=document.createElement('div'); d.textContent=s??''; return d.innerHTML; }
+
+async function fetchUserName(userId) {
+  if (userCache[userId]) return userCache[userId];
+  try {
+    const res = await fetch(`/api/auth/users/${userId}`, { headers: {'X-User-Admin':'true'} });
+    if (!res.ok) { userCache[userId] = { name: `User #${userId}`, email: '' }; return userCache[userId]; }
+    const data = await res.json();
+    userCache[userId] = { name: data.name || `User #${userId}`, email: data.email || '' };
+  } catch {
+    userCache[userId] = { name: `User #${userId}`, email: '' };
+  }
+  return userCache[userId];
+}
 function spineColor(t){ return spineColors[(t?.charCodeAt(0)||0)%spineColors.length]; }
 
 function initTheme(){
@@ -240,6 +254,9 @@ async function loadOrders(){
     const res = await fetch('/api/orders/all', { headers:{'X-User-Admin':'true'} });
     if(!res.ok) throw new Error('Forbidden');
     allOrders = await res.json();
+    // Pre-fetch all unique user names in parallel
+    const uniqueUserIds = [...new Set(allOrders.map(o => o.userId))];
+    await Promise.all(uniqueUserIds.map(id => fetchUserName(id)));
     buildStats();
     renderTable();
   } catch(e){
@@ -291,7 +308,10 @@ function renderTable(){
         <button class="expand-btn" id="expand-${o.id}" onclick="toggleDetail(${o.id})" title="View items">▶</button>
       </td>
       <td class="td-id">#${o.id}</td>
-      <td class="td-user">${o.userName}</strong></td>
+      <td class="td-user">
+        <strong>${esc(userCache[o.userId]?.name || "User #" + o.userId)}</strong>
+        <small>${esc(userCache[o.userId]?.email || "")}</small>
+      </td>
       <td class="td-date">${formatDate(o.orderDate)}</td>
       <td class="td-items">
         <div class="items-list">
