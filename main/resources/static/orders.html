@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>NOVA — My Orders</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg: #05080f;
+      --surface: #0d1321;
+      --surface2: #131c2e;
+      --border: rgba(255,255,255,0.07);
+      --accent: #2563eb;
+      --accent-h: #1d4ed8;
+      --text: #f1f5f9;
+      --muted: #64748b;
+      --danger: #ef4444;
+      --success: #22c55e;
+    }
+
+    body.light-mode {
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --surface2: #f1f5f9;
+      --border: rgba(0,0,0,0.08);
+      --text: #0f172a;
+    }
+
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{background:var(--bg);font-family:'Inter',system-ui,sans-serif;color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased;transition:background 0.3s, color 0.3s;}
+    .nav{position:sticky;top:0;z-index:100;background:rgba(5,8,15,0.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:0 2rem;height:64px;display:flex;align-items:center;justify-content:space-between;}
+    body.light-mode .nav{background:rgba(248,250,252,0.85);}
+    .nav-brand{font-size:1.2rem;font-weight:700;letter-spacing:0.08em;color:var(--text);text-decoration:none;display:flex;align-items:center;gap:0.5rem;}
+    .nav-brand span{width:8px;height:8px;border-radius:50%;background:var(--accent);display:inline-block;box-shadow:0 0 10px var(--accent);}
+    .nav-right{display:flex;align-items:center;gap:0.75rem;}
+    .btn-nav{padding:0.45rem 1rem;border-radius:8px;font-size:0.82rem;font-weight:500;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--muted);text-decoration:none;transition:all 0.2s;}
+    .btn-nav:hover{color:var(--text);border-color:rgba(255,255,255,0.2);}
+    body.light-mode .btn-nav:hover{border-color:rgba(0,0,0,0.2);}
+    .btn-ghost{background:transparent;border:none;color:var(--muted);font-size:0.82rem;cursor:pointer;padding:0.45rem 0.7rem;}
+    .btn-ghost:hover{color:var(--text);}
+
+    .theme-toggle {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.45rem 0.9rem;
+      font-size: 0.85rem;
+      cursor: pointer;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.2s;
+    }
+    .theme-toggle:hover {
+      border-color: var(--accent);
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .container{max-width:860px;margin:0 auto;padding:2.5rem 2rem;}
+    .page-title{font-size:1.6rem;font-weight:700;letter-spacing:-0.03em;margin-bottom:0.4rem;color:var(--text);}
+    .page-sub{color:var(--muted);font-size:0.9rem;margin-bottom:2rem;}
+    .order-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:1rem;transition:border-color 0.2s;}
+    .order-card:hover{border-color:rgba(255,255,255,0.12);}
+    body.light-mode .order-card:hover{border-color:rgba(0,0,0,0.12);}
+    .order-head{padding:1.1rem 1.25rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem;border-bottom:1px solid var(--border);}
+    .order-meta{display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;}
+    .order-id{font-size:0.82rem;font-weight:600;color:var(--text);}
+    .order-date{font-size:0.78rem;color:var(--muted);}
+    .order-right{display:flex;align-items:center;gap:0.75rem;}
+    .status-badge{font-size:0.7rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;padding:0.3rem 0.7rem;border-radius:9999px;}
+    .status-CONFIRMED {background:rgba(34,197,94,0.12);color:#4ade80;border:1px solid rgba(34,197,94,0.25);}
+    .status-SHIPPED   {background:rgba(37,99,235,0.12);color:#60a5fa;border:1px solid rgba(37,99,235,0.25);}
+    .status-DELIVERED {background:rgba(148,163,184,0.1);color:var(--muted);border:1px solid var(--border);}
+    .status-CANCELLED {background:rgba(239,68,68,0.1);color:var(--danger);border:1px solid rgba(239,68,68,0.25);}
+    .order-total{font-size:1rem;font-weight:700;color:var(--text);}
+    .order-items{padding:0.75rem 1.25rem;}
+    .order-item-row{display:flex;justify-content:space-between;align-items:center;padding:0.5rem 0;border-bottom:1px solid var(--border);font-size:0.85rem;}
+    .order-item-row:last-child{border-bottom:none;}
+    .item-name{color:var(--text);}
+    .item-qty{color:var(--muted);margin-left:0.3rem;}
+    .item-subtotal{color:var(--muted);font-size:0.8rem;}
+    .empty-state{text-align:center;padding:5rem 1rem;color:var(--muted);}
+    .empty-state .icon{font-size:3rem;margin-bottom:1rem;}
+    .empty-state a{color:var(--accent);text-decoration:none;font-size:0.9rem;}
+    .loading{text-align:center;padding:4rem;color:var(--muted);}
+    .error-state{text-align:center;padding:4rem 1rem;color:var(--danger);}
+    .error-state .icon{font-size:3rem;margin-bottom:1rem;}
+
+    @media(max-width:640px){
+      .nav{padding:0 1rem;}
+      .container{padding:1.5rem 1rem;}
+      .theme-toggle span {display: none;}
+    }
+  </style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="/index.html" class="nav-brand"><span></span>NOVA</a>
+  <div class="nav-right">
+    <a href="/index.html" class="btn-nav">← Catalog</a>
+    <button class="btn-ghost" onclick="logout()">Logout</button>
+    <button class="theme-toggle" onclick="toggleTheme()" id="themeToggle">
+      🌓 <span>Theme</span>
+    </button>
+  </div>
+</nav>
+
+<div class="container">
+  <div class="page-title">My Orders</div>
+  <div class="page-sub">Your complete order history</div>
+  <div id="orderList">
+    <div class="loading">
+      <div class="icon">📦</div>
+      Loading your orders...
+    </div>
+  </div>
+</div>
+
+<script>
+  function getUser() {
+    try {
+      const raw = localStorage.getItem('user');
+      if (!raw) return null;
+      const userData = JSON.parse(raw);
+      if (userData.user) return userData.user;
+      return userData;
+    } catch (e) {
+      console.error('Error parsing user:', e);
+      return null;
+    }
+  }
+
+  function getAuthToken() {
+    return localStorage.getItem('token');
+  }
+
+  function logout() {
+    localStorage.removeItem('user');
+    localStorage.removeItem('token');
+    localStorage.removeItem('cart');
+    window.location.href = '/login.html';
+  }
+
+  function toggleTheme() {
+    const body = document.body;
+    body.classList.toggle("light-mode");
+    const isLight = body.classList.contains("light-mode");
+    localStorage.setItem("theme", isLight ? "light" : "dark");
+    const btn = document.getElementById("themeToggle");
+    if (btn) btn.innerHTML = isLight ? "☀️ <span>Light</span>" : "🌓 <span>Theme</span>";
+  }
+
+  function initTheme() {
+    const savedTheme = localStorage.getItem("theme");
+    if (savedTheme === "light") {
+      document.body.classList.add("light-mode");
+      const btn = document.getElementById("themeToggle");
+      if(btn) btn.innerHTML = "☀️ <span>Light</span>";
+    }
+  }
+
+  function formatDate(dateStr) {
+    if (!dateStr) return 'Date pending';
+    try {
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return 'Invalid date';
+      return d.toLocaleDateString('en-PH', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch (e) {
+      return 'Date unavailable';
+    }
+  }
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  async function loadOrders() {
+    const user = getUser();
+    const token = getAuthToken();
+
+    if (!user || !token) {
+      window.location.href = '/login.html';
+      return;
+    }
+
+    const orderListEl = document.getElementById('orderList');
+
+    try {
+      const response = await fetch('/api/orders', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.status === 401 || response.status === 403) {
+        localStorage.removeItem('user');
+        localStorage.removeItem('token');
+        window.location.href = '/login.html';
+        return;
+      }
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const orders = await response.json();
+
+      if (!orders || orders.length === 0) {
+        orderListEl.innerHTML = `
+          <div class="empty-state">
+            <div class="icon">📦</div>
+            <div>You haven't placed any orders yet.</div>
+            <br/>
+            <a href="/index.html">Browse the catalog →</a>
+          </div>`;
+        return;
+      }
+
+      orderListEl.innerHTML = orders.map(order => `
+        <div class="order-card">
+          <div class="order-head">
+            <div class="order-meta">
+              <span class="order-id">Order #${escapeHtml(String(order.id))}</span>
+              <span class="order-date">${formatDate(order.orderDate)}</span>
+            </div>
+            <div class="order-right">
+              <span class="status-badge status-${escapeHtml(order.status || 'CONFIRMED')}">
+                ${escapeHtml(order.status || 'CONFIRMED')}
+              </span>
+              <span class="order-total">₱${(order.totalAmount || 0).toFixed(2)}</span>
+            </div>
+          </div>
+          <div class="order-items">
+            ${(order.items || []).map(item => `
+              <div class="order-item-row">
+                <span class="item-name">
+                  ${escapeHtml(item.bookTitle || 'Book')}
+                  <span class="item-qty">× ${item.quantity || 0}</span>
+                </span>
+                <span class="item-subtotal">
+                  ₱${((item.priceAtPurchase || 0) * (item.quantity || 0)).toFixed(2)}
+                </span>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `).join('');
+
+    } catch (error) {
+      console.error('Error loading orders:', error);
+      orderListEl.innerHTML = `
+        <div class="error-state">
+          <div class="icon">⚠️</div>
+          <div>Failed to load your orders.</div>
+          <br/>
+          <button onclick="loadOrders()" class="btn-nav" style="margin-top: 1rem;">
+            Try Again ↻
+          </button>
+        </div>
+      `;
+    }
+  }
+
+  initTheme();
+  loadOrders();
+</script>
+</body>
+</html>

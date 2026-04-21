@@ -2,12 +2,13 @@ package com.example.onlinebookstore.controller;
 
 import com.example.onlinebookstore.model.Order;
 import com.example.onlinebookstore.model.OrderItem;
-import com.example.onlinebookstore.repository.OrderRepository;
+import com.example.onlinebookstore.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/orders")
@@ -15,23 +16,35 @@ import java.util.List;
 public class OrderController {
 
     @Autowired
-    private OrderRepository orderRepository;
+    private OrderService orderService;
 
+    /**
+     * POST /api/orders
+     * Body: { "userId": 1, "items": [{"bookId":1,"bookTitle":"...","priceAtPurchase":29.99,"quantity":2}] }
+     */
     @PostMapping
-    public String placeOrder(@RequestBody List<OrderItem> items) {
-
-        Order order = new Order();
-        order.setOrderDate(LocalDateTime.now());
-
-        // link items to order
-        for (OrderItem item : items) {
-            item.setOrder(order);   // ✅ FIXED (NO orderId anymore)
+    public ResponseEntity<?> placeOrder(@RequestBody OrderRequest request) {
+        try {
+            Order order = orderService.placeOrder(request.getUserId(), request.getItems());
+            return ResponseEntity.ok(order);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
+    }
 
-        order.setItems(items);
+    /**
+     * GET /api/orders?userId=1
+     * Returns all orders for a specific user.
+     */
+    @GetMapping
+    public List<Order> getOrdersByUser(@RequestParam Long userId) {
+        return orderService.getOrdersByUser(userId);
+    }
 
-        orderRepository.save(order); // ✅ cascade saves items if configured
-
-        return "Order placed!";
+    // ─── Inner DTO ────────────────────────────────────────
+    @lombok.Data
+    public static class OrderRequest {
+        private Long userId;
+        private List<OrderItem> items;
     }
 }

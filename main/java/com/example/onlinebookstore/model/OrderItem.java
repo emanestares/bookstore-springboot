@@ -16,9 +16,15 @@ public class OrderItem {
 
     private Long bookId;
 
+    // Added: store book title snapshot so order history works even if book is deleted
+    private String bookTitle;
+
+    // Added: price at time of purchase
+    private double priceAtPurchase;
+
     private int quantity;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id")
     private Order order;
 }

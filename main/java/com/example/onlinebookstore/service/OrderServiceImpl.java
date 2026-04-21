@@ -17,16 +17,21 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public Order placeOrder(Long userId, List<OrderItem> items) {
-
         Order order = new Order();
         order.setUserId(userId);
         order.setOrderDate(LocalDateTime.now());
+        order.setStatus(Order.OrderStatus.CONFIRMED);
 
-        // link items to order
+        // Calculate total from items
+        double total = items.stream()
+                .mapToDouble(i -> i.getPriceAtPurchase() * i.getQuantity())
+                .sum();
+        order.setTotalAmount(total);
+
+        // Link each item back to this order
         for (OrderItem item : items) {
             item.setOrder(order);
         }
-
         order.setItems(items);
 
         return orderRepository.save(order);
@@ -34,7 +39,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public List<Order> getOrdersByUser(Long userId) {
-        return orderRepository.findByUserId(userId);
+        return orderRepository.findByUserIdOrderByOrderDateDesc(userId);
     }
 
     @Override

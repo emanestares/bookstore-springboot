@@ -2,7 +2,6 @@ package com.example.onlinebookstore.model;
 
 import jakarta.persistence.*;
 import lombok.*;
-
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -17,10 +16,23 @@ public class Order {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Long userId; // keep simple for now
+    // userId kept simple as per your original design
+    private Long userId;
 
     private LocalDateTime orderDate;
 
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
+    // Added: order status for order history display
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private OrderStatus status = OrderStatus.CONFIRMED;
+
+    // Added: total amount snapshot at time of order
+    private double totalAmount;
+
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<OrderItem> items;
+
+    public enum OrderStatus {
+        CONFIRMED, SHIPPED, DELIVERED, CANCELLED
+    }
 }
