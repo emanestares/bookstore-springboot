@@ -20,14 +20,7 @@ public class OrderController {
 
     /**
      * POST /api/orders
-     * Places an order. No auth token needed — userId is validated in the service.
-     *
-     * Body: {
-     *   "userId": 1,
-     *   "items": [
-     *     { "bookId": 1, "bookTitle": "Clean Code", "priceAtPurchase": 29.99, "quantity": 2 }
-     *   ]
-     * }
+     * Places an order.
      */
     @PostMapping
     public ResponseEntity<?> placeOrder(@RequestBody OrderRequest request) {
@@ -58,6 +51,18 @@ public class OrderController {
     }
 
     /**
+     * GET /api/orders/all
+     * Admin: returns all orders across all users.
+     */
+    @GetMapping("/all")
+    public ResponseEntity<?> getAllOrders(
+            @RequestHeader(value = "X-User-Admin", defaultValue = "false") String isAdmin) {
+        if (!"true".equals(isAdmin))
+            return ResponseEntity.status(403).body(Map.of("message", "Admin access required"));
+        return ResponseEntity.ok(orderService.getAllOrders());
+    }
+
+    /**
      * GET /api/orders/{id}
      * Returns a specific order by ID.
      */
@@ -67,6 +72,29 @@ public class OrderController {
             return ResponseEntity.ok(orderService.getOrderById(id));
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
+        }
+    }
+
+    /**
+     * PATCH /api/orders/{id}/status
+     * Admin: update order status.
+     * Body: { "status": "TO_DELIVER" }
+     */
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<?> updateStatus(
+            @PathVariable Long id,
+            @RequestBody Map<String, String> body,
+            @RequestHeader(value = "X-User-Admin", defaultValue = "false") String isAdmin) {
+        if (!"true".equals(isAdmin))
+            return ResponseEntity.status(403).body(Map.of("message", "Admin access required"));
+        try {
+            Order.OrderStatus status = Order.OrderStatus.valueOf(body.get("status"));
+            Order updated = orderService.updateOrderStatus(id, status);
+            return ResponseEntity.ok(updated);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Invalid status value"));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         }
     }
 

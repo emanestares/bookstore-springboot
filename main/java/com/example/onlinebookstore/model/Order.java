@@ -14,25 +14,26 @@ public class Order {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private Long id;
 
-    // userId kept simple as per your original design
+    @Column(name = "user_id", nullable = false)
     private Long userId;
 
+    @Column(name = "order_date")
     private LocalDateTime orderDate;
 
-    // Added: order status for order history display
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private OrderStatus status = OrderStatus.CONFIRMED;
+    @Column(name = "status", nullable = false)
+    private OrderStatus status = OrderStatus.PREPARING;
 
-    // Added: total amount snapshot at time of order
+    @Column(name = "total_amount")
     private double totalAmount;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<OrderItem> items;
 
     public enum OrderStatus {
-        CONFIRMED, SHIPPED, DELIVERED, CANCELLED
+        PREPARING, TO_DELIVER, DECLINED
     }
 }

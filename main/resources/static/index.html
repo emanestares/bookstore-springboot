@@ -224,7 +224,10 @@ body.light .book-card:hover{box-shadow:0 8px 32px rgba(0,0,0,.1);}
 
   <!-- Admin Panel (shown only when isAdmin=true) -->
   <div class="admin-panel" id="adminPanel" style="display:none">
-    <div class="panel-title">Manage Catalog</div>
+    <div class="panel-title" style="display:flex;align-items:center;justify-content:space-between;">
+      <span>Manage Catalog</span>
+      <a href="/admin-orders.html" class="nav-icon-btn" style="font-size:0.78rem;text-decoration:none;">📋 Manage Orders</a>
+    </div>
     <div class="admin-form">
       <div class="form-row">
         <input type="text"   id="aTitle"    placeholder="Book Title *" style="flex:3;min-width:150px"/>
@@ -233,8 +236,9 @@ body.light .book-card:hover{box-shadow:0 8px 32px rgba(0,0,0,.1);}
         <input type="number" id="aStock"    placeholder="Stock *"      style="width:90px"  min="0"/>
       </div>
       <div class="form-row">
-        <input type="text"  id="aCategory" placeholder="Category"      style="width:140px"/>
-        <textarea           id="aDesc"     placeholder="Short description (optional)" style="flex:1;min-width:200px"></textarea>
+        <input type="text"  id="aCategory"   placeholder="Category"                        style="width:140px"/>
+        <input type="url"   id="aCoverImage" placeholder="Cover Image URL (optional)"      style="flex:2;min-width:180px"/>
+        <textarea           id="aDesc"       placeholder="Short description (optional)"    style="flex:1;min-width:180px"></textarea>
         <button class="btn-accent" onclick="adminAddBook()">+ Add Book</button>
       </div>
     </div>
@@ -290,6 +294,38 @@ body.light .book-card:hover{box-shadow:0 8px 32px rgba(0,0,0,.1);}
 const API = '';
 let allBooks = [];
 let cart = JSON.parse(localStorage.getItem('cart') || '[]');
+const coverCache = {}; // { bookId: coverImageUrl } from Open Library API
+
+async function fetchCoversForBooks(books) {
+  for (const b of books) {
+    if (b.coverImage || coverCache[b.id]) continue;
+    const query = encodeURIComponent(b.title + ' ' + b.author);
+    try {
+      const res = await fetch('https://openlibrary.org/search.json?q=' + query + '&limit=1&fields=cover_i');
+      const data = await res.json();
+      const coverId = data?.docs?.[0]?.cover_i;
+      if (coverId) {
+        coverCache[b.id] = 'https://covers.openlibrary.org/b/id/' + coverId + '-M.jpg';
+        const card = document.querySelector('[data-book-id="' + b.id + '"] .book-cover');
+        if (card) {
+          card.style.backgroundImage = "url('" + coverCache[b.id] + "')";
+          card.style.backgroundSize = 'cover';
+          card.style.backgroundPosition = 'center';
+          const spine = card.querySelector('.cover-spine');
+          if (spine) spine.remove();
+          const coverContent = card.querySelector('.cover-content');
+          if (coverContent) {
+            coverContent.style.background = 'linear-gradient(to top,rgba(0,0,0,0.75) 0%,transparent 100%)';
+            coverContent.style.position = 'absolute';
+            coverContent.style.bottom = '0';
+            coverContent.style.left = '0';
+            coverContent.style.right = '0';
+          }
+        }
+      }
+    } catch {}
+  }
+}
 
 // ── Helpers ──────────────────────────────────────────────
 function esc(s){ const d=document.createElement('div'); d.textContent=s??''; return d.innerHTML; }
@@ -382,11 +418,13 @@ function renderBooks(){
     return;
   }
 
-  document.getElementById('bookGrid').innerHTML = books.map(b => `
-    <div class="book-card">
-      <div class="book-cover ${coverClass(b.category)}">
-        <div class="cover-spine" style="background:rgba(255,255,255,0.08)"></div>
-        <div class="cover-content">
+  document.getElementById('bookGrid').innerHTML = books.map(b => {
+    const imgUrl = b.coverImage || coverCache[b.id] || null;
+    return `
+    <div class="book-card" data-book-id="${b.id}">
+      <div class="book-cover ${coverClass(b.category)}" style="${imgUrl ? `background-image:url('${imgUrl}');background-size:cover;background-position:center;` : ''}">
+        ${imgUrl ? '' : '<div class="cover-spine" style="background:rgba(255,255,255,0.08)"></div>'}
+        <div class="cover-content" style="${imgUrl ? 'background:linear-gradient(to top,rgba(0,0,0,0.75) 0%,transparent 100%);position:absolute;bottom:0;left:0;right:0;' : ''}">
           <div class="cover-title">${esc(b.title)}</div>
           <div class="cover-author">${esc(b.author)}</div>
         </div>
@@ -408,14 +446,17 @@ function renderBooks(){
         </button>
       </div>
     </div>
-  `).join('');
-}
+  `}).join('');
 
+  // Async: fetch covers from Open Library for any book without a cover
+  fetchCoversForBooks(books);
+}
 // ── Admin ────────────────────────────────────────────────
 async function adminAddBook(){
   const u = getUser();
   if(!u?.admin){ toast('Admin access required','error'); return; }
 
+  const coverInput = document.getElementById('aCoverImage').value.trim();
   const book = {
     title:       document.getElementById('aTitle').value.trim(),
     author:      document.getElementById('aAuthor').value.trim(),
@@ -423,6 +464,7 @@ async function adminAddBook(){
     stock:       parseInt(document.getElementById('aStock').value)||0,
     category:    document.getElementById('aCategory').value.trim(),
     description: document.getElementById('aDesc').value.trim(),
+    coverImage:  coverInput || null,
   };
   if(!book.title||!book.author){ toast('Title and author are required','error'); return; }
   if(book.price<0){ toast('Price cannot be negative','error'); return; }
@@ -436,7 +478,7 @@ async function adminAddBook(){
     const data = await res.json();
     if(!res.ok){ toast(data.message||'Failed to add book','error'); return; }
     toast(`"${book.title}" added to catalog`,'success');
-    ['aTitle','aAuthor','aPrice','aStock','aCategory','aDesc'].forEach(id=>document.getElementById(id).value='');
+    ['aTitle','aAuthor','aPrice','aStock','aCategory','aDesc','aCoverImage'].forEach(id=>document.getElementById(id).value='');
     loadBooks();
   } catch{ toast('Network error','error'); }
 }
