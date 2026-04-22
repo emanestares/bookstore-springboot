@@ -7,8 +7,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -20,12 +21,13 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(BookController.class)
+@AutoConfigureMockMvc(addFilters = false)
 @DisplayName("BookController Tests")
 class BookControllerTest {
 
     @Autowired MockMvc mockMvc;
     @Autowired ObjectMapper objectMapper;
-    @MockBean  BookService bookService;
+    @MockitoBean BookService bookService;
 
     private Book sampleBook;
 
@@ -40,13 +42,10 @@ class BookControllerTest {
         sampleBook.setStock(10);
     }
 
-    // ── GET /api/books ───────────────────────────────────
-
     @Test
     @DisplayName("GET /api/books returns all books")
     void getAllBooks_returns200WithList() throws Exception {
         when(bookService.getAllBooks()).thenReturn(List.of(sampleBook));
-
         mockMvc.perform(get("/api/books"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].title").value("Clean Code"))
@@ -63,13 +62,10 @@ class BookControllerTest {
                 .andExpect(jsonPath("$").isEmpty());
     }
 
-    // ── GET /api/books/{id} ──────────────────────────────
-
     @Test
     @DisplayName("GET /api/books/{id} returns book when found")
     void getBookById_found_returns200() throws Exception {
         when(bookService.getBookById(1L)).thenReturn(sampleBook);
-
         mockMvc.perform(get("/api/books/1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1))
@@ -84,8 +80,6 @@ class BookControllerTest {
                 .andExpect(status().isNotFound());
     }
 
-    // ── GET /api/books/search ────────────────────────────
-
     @Test
     @DisplayName("GET /api/books/search returns matching books")
     void searchBooks_returnsMatches() throws Exception {
@@ -94,8 +88,6 @@ class BookControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].title").value("Clean Code"));
     }
-
-    // ── GET /api/books/category ──────────────────────────
 
     @Test
     @DisplayName("GET /api/books/category filters by category")
@@ -106,13 +98,10 @@ class BookControllerTest {
                 .andExpect(jsonPath("$[0].category").value("Programming"));
     }
 
-    // ── POST /api/books (admin) ──────────────────────────
-
     @Test
     @DisplayName("POST /api/books with admin header creates book")
     void addBook_adminHeader_returns200() throws Exception {
         when(bookService.addBook(any(Book.class))).thenReturn(sampleBook);
-
         mockMvc.perform(post("/api/books")
                         .header("X-User-Admin", "true")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -167,13 +156,10 @@ class BookControllerTest {
                 .andExpect(jsonPath("$.message").value("Price cannot be negative"));
     }
 
-    // ── PUT /api/books/{id} (admin) ──────────────────────
-
     @Test
     @DisplayName("PUT /api/books/{id} with admin header updates book")
     void updateBook_adminHeader_returns200() throws Exception {
         when(bookService.updateBook(eq(1L), any(Book.class))).thenReturn(sampleBook);
-
         mockMvc.perform(put("/api/books/1")
                         .header("X-User-Admin", "true")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -201,8 +187,6 @@ class BookControllerTest {
                         .content(objectMapper.writeValueAsString(sampleBook)))
                 .andExpect(status().isNotFound());
     }
-
-    // ── DELETE /api/books/{id} (admin) ───────────────────
 
     @Test
     @DisplayName("DELETE /api/books/{id} with admin header deletes book")

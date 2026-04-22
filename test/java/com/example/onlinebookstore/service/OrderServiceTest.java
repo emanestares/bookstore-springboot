@@ -16,6 +16,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -50,12 +51,20 @@ class OrderServiceTest {
         sampleBook.setStock(10);
         sampleBook.setCategory("Programming");
 
+        // Always initialize items to avoid NullPointerException in updateOrderStatus
+        OrderItem item = new OrderItem();
+        item.setBookId(10L);
+        item.setBookTitle("Clean Code");
+        item.setPriceAtPurchase(499.00);
+        item.setQuantity(2);
+
         sampleOrder = new Order();
         sampleOrder.setId(1L);
         sampleOrder.setUserId(1L);
         sampleOrder.setOrderDate(LocalDateTime.now());
         sampleOrder.setStatus(Order.OrderStatus.PREPARING);
         sampleOrder.setTotalAmount(998.00);
+        sampleOrder.setItems(new ArrayList<>(List.of(item)));
     }
 
     // ── placeOrder ───────────────────────────────────────
@@ -81,7 +90,7 @@ class OrderServiceTest {
         assertThat(result.getUserId()).isEqualTo(1L);
         assertThat(result.getStatus()).isEqualTo(Order.OrderStatus.PREPARING);
         assertThat(result.getTotalAmount()).isEqualTo(998.00);
-        verify(bookRepository).save(any(Book.class)); // stock was deducted
+        verify(bookRepository).save(any(Book.class));
         verify(orderRepository).save(any(Order.class));
     }
 
@@ -150,7 +159,7 @@ class OrderServiceTest {
     void placeOrder_insufficientStock_throws() {
         OrderItem item = new OrderItem();
         item.setBookId(10L);
-        item.setQuantity(50); // only 10 in stock
+        item.setQuantity(50);
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(sampleUser));
         when(bookRepository.findById(10L)).thenReturn(Optional.of(sampleBook));
@@ -226,14 +235,17 @@ class OrderServiceTest {
     }
 
     @Test
-    @DisplayName("updateOrderStatus can set DECLINED status")
+    @DisplayName("updateOrderStatus can set DECLINED status and restores stock")
     void updateOrderStatus_toDeclined() {
         when(orderRepository.findById(1L)).thenReturn(Optional.of(sampleOrder));
         when(orderRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        when(bookRepository.findById(10L)).thenReturn(Optional.of(sampleBook));
 
         Order result = orderService.updateOrderStatus(1L, Order.OrderStatus.DECLINED);
 
         assertThat(result.getStatus()).isEqualTo(Order.OrderStatus.DECLINED);
+        // Stock should be restored (10 + 2 = 12)
+        assertThat(sampleBook.getStock()).isEqualTo(12);
     }
 
     @Test
