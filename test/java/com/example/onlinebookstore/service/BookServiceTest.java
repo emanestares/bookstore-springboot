@@ -2,6 +2,7 @@ package com.example.onlinebookstore.service;
 
 import com.example.onlinebookstore.model.Book;
 import com.example.onlinebookstore.repository.BookRepository;
+import com.example.onlinebookstore.repository.OrderItemRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -21,6 +22,7 @@ import static org.mockito.Mockito.*;
 class BookServiceTest {
 
     @Mock BookRepository bookRepository;
+    @Mock OrderItemRepository orderItemRepository;
     @InjectMocks BookServiceImpl bookService;
 
     private Book sampleBook;
@@ -120,10 +122,11 @@ class BookServiceTest {
     }
 
     @Test
-    @DisplayName("deleteBook calls deleteById when book exists")
+    @DisplayName("deleteBook clears order item references and calls deleteById")
     void deleteBook_exists_deletes() {
         when(bookRepository.existsById(1L)).thenReturn(true);
         bookService.deleteBook(1L);
+        verify(orderItemRepository).clearBookIdByBookId(1L);
         verify(bookRepository).deleteById(1L);
     }
 
