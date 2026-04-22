@@ -53,12 +53,8 @@ public class BookController {
         return bookService.getAllCategories();
     }
 
-    // ── Admin Endpoints (admin check done via isAdmin header) ──
+    // ── Admin Endpoints ──────────────────────────────────
 
-    /**
-     * POST /api/books
-     * Header: X-User-Admin: true  (set by frontend when logged in as admin)
-     */
     @PostMapping
     public ResponseEntity<?> addBook(@RequestBody Book book,
                                      @RequestHeader(value = "X-User-Admin", defaultValue = "false") String isAdmin) {
@@ -96,7 +92,12 @@ public class BookController {
             bookService.deleteBook(id);
             return ResponseEntity.ok(Map.of("message", "Book deleted"));
         } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
+            // Only return 404 for genuine "not found" — other errors return 500
+            String msg = e.getMessage() != null ? e.getMessage() : "";
+            if (msg.contains("not found")) {
+                return ResponseEntity.status(404).body(Map.of("message", msg));
+            }
+            return ResponseEntity.status(500).body(Map.of("message", "Could not delete book: " + msg));
         }
     }
 }

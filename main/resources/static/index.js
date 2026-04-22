@@ -59,13 +59,11 @@ function initNav(){
     document.getElementById('loginBtn').style.display  = 'none';
     document.getElementById('logoutBtn').style.display = 'inline-block';
     if(u.admin){
-      // Admin: show admin panel and manage orders, hide regular orders & cart
       document.getElementById('adminPanel').style.display      = 'block';
       document.getElementById('manageOrdersBtn').style.display = 'inline-flex';
       document.getElementById('ordersBtn').style.display       = 'none';
       document.getElementById('cartNavBtn').style.display      = 'none';
     } else {
-      // Regular user: show orders & cart
       document.getElementById('ordersBtn').style.display  = 'inline-flex';
       document.getElementById('cartNavBtn').style.display = 'inline-flex';
     }
@@ -251,13 +249,24 @@ function openDeleteConfirm(bookId){
   pendingDeleteId = bookId;
   document.getElementById('confirmMsg').textContent =
     `"${b.title}" will be permanently removed from the catalog. This action cannot be undone.`;
-  const btn = document.getElementById('confirmDeleteBtn');
-  btn.onclick = () => executeDelete(bookId);
-  document.getElementById('confirmModal').classList.add('open');
+
+  // FIX: clone the button to remove any stale event listeners, then re-attach
+  const oldBtn = document.getElementById('confirmDeleteBtn');
+  const newBtn = oldBtn.cloneNode(true);
+  oldBtn.parentNode.replaceChild(newBtn, oldBtn);
+  newBtn.addEventListener('click', () => executeDelete(bookId));
+
+  // FIX: use display style directly instead of relying solely on .open class
+  const modal = document.getElementById('confirmModal');
+  modal.classList.add('open');
+  modal.style.display = 'flex';
   document.body.style.overflow = 'hidden';
 }
+
 function closeConfirmModal(){
-  document.getElementById('confirmModal').classList.remove('open');
+  const modal = document.getElementById('confirmModal');
+  modal.classList.remove('open');
+  modal.style.display = 'none';
   document.body.style.overflow = '';
   pendingDeleteId = null;
 }
@@ -267,7 +276,12 @@ async function executeDelete(bookId){
   btn.disabled=true; btn.textContent='Deleting…';
   try{
     const res = await fetch(`/api/books/${bookId}`,{method:'DELETE',headers:{'X-User-Admin':'true'}});
-    if(!res.ok){ const d=await res.json(); toast(d.message||'Delete failed','error'); return; }
+    // 404 means it's already gone — treat as success and clean up locally
+    if(!res.ok && res.status !== 404){
+      const d = await res.json().catch(()=>({}));
+      toast(d.message||'Delete failed','error');
+      return;
+    }
     allBooks = allBooks.filter(x=>x.id!==bookId);
     toast('Book removed from catalog','success');
     closeConfirmModal();
@@ -350,7 +364,7 @@ async function checkout(){
     if(res.ok){
       cart=[]; saveCart(); updateCartDot(); renderDrawer(); closeCart();
       toast('Order placed! Redirecting to your orders…','success');
-      await loadBooks(); // refresh stock counts
+      await loadBooks();
       setTimeout(()=>window.location.href='/orders.html',1400);
     } else {
       toast(data.message||'Checkout failed. Please try again.','error');
@@ -381,16 +395,13 @@ function openModal(bookId){
   const fallbackGrad = gradMap[(b.category||'').toLowerCase()] || 'linear-gradient(145deg,#1e2a3a,#0f1520)';
 
   function applyModalCover(url) {
-    // Use background shorthand to avoid conflicts between background and background-image
     coverEl.style.cssText = url
       ? "position:absolute;inset:0;background:url('" + url + "') center/cover no-repeat;"
       : 'position:absolute;inset:0;background:' + fallbackGrad + ';';
   }
 
-  // Show gradient immediately while waiting
   applyModalCover(coverCache[bookId] ? coverCache[bookId].replace('-M.jpg', '-L.jpg') : null);
 
-  // If not cached yet, fetch cover and update modal live
   if (!coverCache[bookId]) {
     const query = encodeURIComponent(b.title + ' ' + b.author);
     fetch('https://openlibrary.org/search.json?q=' + query + '&limit=1&fields=cover_i')
@@ -399,11 +410,9 @@ function openModal(bookId){
         const coverId = data?.docs?.[0]?.cover_i;
         if (coverId) {
           coverCache[bookId] = 'https://covers.openlibrary.org/b/id/' + coverId + '-M.jpg';
-          // Only update modal if still open on same book
           if (modalBookId === bookId) {
             applyModalCover('https://covers.openlibrary.org/b/id/' + coverId + '-L.jpg');
           }
-          // Update the grid card too
           const cardCover = document.querySelector('[data-book-id="' + bookId + '"] .book-cover');
           if (cardCover) {
             cardCover.style.backgroundImage = "url('" + coverCache[bookId] + "')";
@@ -425,15 +434,12 @@ function openModal(bookId){
 
   const stockEl = document.getElementById('modalStockTag');
   const cartBtn = document.getElementById('modalCartBtn');
-  // Hide Add to Cart for admin users
   cartBtn.style.display = isAdmin() ? 'none' : '';
   if((b.stock||0)<=0){ stockEl.textContent='Out of Stock'; stockEl.className='modal-stock-tag modal-stock-none'; cartBtn.disabled=true; cartBtn.textContent='Out of Stock'; }
   else if(b.stock<=5){ stockEl.textContent=b.stock+' left'; stockEl.className='modal-stock-tag modal-stock-low'; cartBtn.disabled=false; cartBtn.textContent='+ Add to Cart'; }
   else { stockEl.textContent=b.stock+' in stock'; stockEl.className='modal-stock-tag modal-stock-ok'; cartBtn.disabled=false; cartBtn.textContent='+ Add to Cart'; }
 
-  // Admin action buttons inside modal
   const footerBtns = document.getElementById('modalFooterBtns');
-  // Remove existing admin buttons
   ['modalEditBtn','modalDeleteBtn'].forEach(id=>{ const el=document.getElementById(id); if(el) el.remove(); });
   if(isAdmin()){
     const editBtn = document.createElement('button');

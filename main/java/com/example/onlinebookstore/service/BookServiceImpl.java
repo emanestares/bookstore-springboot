@@ -2,8 +2,10 @@ package com.example.onlinebookstore.service;
 
 import com.example.onlinebookstore.model.Book;
 import com.example.onlinebookstore.repository.BookRepository;
+import com.example.onlinebookstore.repository.OrderItemRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -13,6 +15,9 @@ public class BookServiceImpl implements BookService {
 
     @Autowired
     private BookRepository bookRepository;
+
+    @Autowired
+    private OrderItemRepository orderItemRepository;
 
     @Override
     public List<Book> getAllBooks() {
@@ -55,14 +60,17 @@ public class BookServiceImpl implements BookService {
         book.setCategory(updated.getCategory());
         book.setDescription(updated.getDescription());
         book.setStock(updated.getStock());
-        // coverImage removed — covers are fetched from Open Library API on the frontend
         return bookRepository.save(book);
     }
 
     @Override
+    @Transactional
     public void deleteBook(Long id) {
         if (!bookRepository.existsById(id))
             throw new RuntimeException("Book not found with id: " + id);
+        // Detach this book from any historical order items before deleting
+        // so the FK constraint doesn't block the delete
+        orderItemRepository.clearBookIdByBookId(id);
         bookRepository.deleteById(id);
     }
 
