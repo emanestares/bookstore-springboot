@@ -29,6 +29,18 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableWebSecurity
 public class SecurityConfig {
 
+    /**
+     * Provide an empty UserDetailsService to suppress Spring Boot's
+     * auto-configured UserDetailsService bean (which is triggered by the
+     * spring.security.user.* properties). Without this, Spring Security
+     * activates HTTP Basic auth and intercepts PUT/DELETE requests before
+     * they reach the controller, returning 401/404 for admin actions.
+     */
+    @Bean
+    public org.springframework.security.core.userdetails.UserDetailsService userDetailsService() {
+        return username -> { throw new org.springframework.security.core.userdetails.UsernameNotFoundException("Not used"); };
+    }
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
