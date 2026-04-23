@@ -3,6 +3,10 @@ let allBooks = [];
 let cart = JSON.parse(localStorage.getItem('cart') || '[]');
 const coverCache = {};
 
+// ── Pagination state ─────────────────────────────────────
+const PAGE_SIZE = 10;
+let currentPage = 1;
+
 // ── Cover fetch ──────────────────────────────────────────
 async function fetchCoversForBooks(books) {
   for (const b of books) {
@@ -49,6 +53,16 @@ function updateThemeBtn(){
   if(btn) btn.textContent = document.body.classList.contains('light') ? '🌙' : '🌓';
 }
 
+// ── Admin Dropdown ───────────────────────────────────────
+function toggleAdminDropdown(){
+  document.getElementById('adminDropdown').classList.toggle('open');
+}
+// Close dropdown when clicking outside
+document.addEventListener('click', e => {
+  const dd = document.getElementById('adminDropdown');
+  if(dd && !dd.contains(e.target)) dd.classList.remove('open');
+});
+
 // ── Nav ──────────────────────────────────────────────────
 function initNav(){
   const u = getUser();
@@ -59,10 +73,10 @@ function initNav(){
     document.getElementById('loginBtn').style.display  = 'none';
     document.getElementById('logoutBtn').style.display = 'inline-block';
     if(u.admin){
-      document.getElementById('adminPanel').style.display      = 'block';
-      document.getElementById('manageOrdersBtn').style.display = 'inline-flex';
-      document.getElementById('ordersBtn').style.display       = 'none';
-      document.getElementById('cartNavBtn').style.display      = 'none';
+      document.getElementById('adminPanel').style.display    = 'block';
+      document.getElementById('adminDropdown').style.display = 'inline-block';
+      document.getElementById('ordersBtn').style.display     = 'none';
+      document.getElementById('cartNavBtn').style.display    = 'none';
     } else {
       document.getElementById('ordersBtn').style.display  = 'inline-flex';
       document.getElementById('cartNavBtn').style.display = 'inline-flex';
@@ -102,26 +116,43 @@ function stockLabel(n){
   return `<span class="stock-tag">${n} in stock</span>`;
 }
 
+// Reset to page 1 whenever filters/search change
+function resetPageAndRender(){
+  currentPage = 1;
+  renderBooks();
+}
+
 function renderBooks(){
   const kw  = document.getElementById('searchInput').value.toLowerCase().trim();
   const cat = document.getElementById('catFilter').value;
   const srt = document.getElementById('sortFilter').value;
   const admin = isAdmin();
 
-  let books = allBooks.filter(b => {
+  let filtered = allBooks.filter(b => {
     const mkw  = !kw  || b.title.toLowerCase().includes(kw) || b.author.toLowerCase().includes(kw);
     const mcat = !cat || b.category === cat;
     return mkw && mcat;
   });
-  if(srt==='price-asc')  books.sort((a,b)=>a.price-b.price);
-  if(srt==='price-desc') books.sort((a,b)=>b.price-a.price);
-  if(srt==='title')      books.sort((a,b)=>a.title.localeCompare(b.title));
+  if(srt==='price-asc')  filtered.sort((a,b)=>a.price-b.price);
+  if(srt==='price-desc') filtered.sort((a,b)=>b.price-a.price);
+  if(srt==='title')      filtered.sort((a,b)=>a.title.localeCompare(b.title));
 
-  document.getElementById('resultsCount').textContent = `${books.length} book${books.length!==1?'s':''}`;
+  const totalBooks  = filtered.length;
+  const totalPages  = Math.max(1, Math.ceil(totalBooks / PAGE_SIZE));
 
-  if(!books.length){
+  // Clamp currentPage
+  if(currentPage > totalPages) currentPage = totalPages;
+
+  const start = (currentPage - 1) * PAGE_SIZE;
+  const books = filtered.slice(start, start + PAGE_SIZE);
+
+  document.getElementById('resultsCount').textContent =
+    `${totalBooks} book${totalBooks!==1?'s':''} · page ${currentPage} of ${totalPages}`;
+
+  if(!totalBooks){
     document.getElementById('bookGrid').innerHTML =
       `<div class="state-box"><div class="s-icon">🔍</div><p>No books match your search.</p></div>`;
+    document.getElementById('pagination').innerHTML = '';
     return;
   }
 
@@ -161,7 +192,47 @@ function renderBooks(){
     </div>`;
   }).join('');
 
+  renderPagination(totalPages);
   fetchCoversForBooks(books);
+}
+
+// ── Pagination ───────────────────────────────────────────
+function renderPagination(totalPages){
+  const el = document.getElementById('pagination');
+  if(totalPages <= 1){ el.innerHTML = ''; return; }
+
+  let html = '';
+
+  // Prev button
+  html += `<button class="page-btn" onclick="goToPage(${currentPage-1})" ${currentPage===1?'disabled':''}>‹ Prev</button>`;
+
+  // Page number buttons — show up to 5 around current page
+  const range = 2;
+  const start = Math.max(1, currentPage - range);
+  const end   = Math.min(totalPages, currentPage + range);
+
+  if(start > 1){
+    html += `<button class="page-btn" onclick="goToPage(1)">1</button>`;
+    if(start > 2) html += `<span class="page-info">…</span>`;
+  }
+  for(let i = start; i <= end; i++){
+    html += `<button class="page-btn ${i===currentPage?'active':''}" onclick="goToPage(${i})">${i}</button>`;
+  }
+  if(end < totalPages){
+    if(end < totalPages - 1) html += `<span class="page-info">…</span>`;
+    html += `<button class="page-btn" onclick="goToPage(${totalPages})">${totalPages}</button>`;
+  }
+
+  // Next button
+  html += `<button class="page-btn" onclick="goToPage(${currentPage+1})" ${currentPage===totalPages?'disabled':''}>Next ›</button>`;
+
+  el.innerHTML = html;
+}
+
+function goToPage(page){
+  currentPage = page;
+  renderBooks();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 // ── Admin Add ────────────────────────────────────────────
@@ -250,13 +321,11 @@ function openDeleteConfirm(bookId){
   document.getElementById('confirmMsg').textContent =
     `"${b.title}" will be permanently removed from the catalog. This action cannot be undone.`;
 
-  // FIX: clone the button to remove any stale event listeners, then re-attach
   const oldBtn = document.getElementById('confirmDeleteBtn');
   const newBtn = oldBtn.cloneNode(true);
   oldBtn.parentNode.replaceChild(newBtn, oldBtn);
   newBtn.addEventListener('click', () => executeDelete(bookId));
 
-  // FIX: use display style directly instead of relying solely on .open class
   const modal = document.getElementById('confirmModal');
   modal.classList.add('open');
   modal.style.display = 'flex';
@@ -276,7 +345,6 @@ async function executeDelete(bookId){
   btn.disabled=true; btn.textContent='Deleting…';
   try{
     const res = await fetch(`/api/books/${bookId}`,{method:'DELETE',headers:{'X-User-Admin':'true'}});
-    // 404 means it's already gone — treat as success and clean up locally
     if(!res.ok && res.status !== 404){
       const d = await res.json().catch(()=>({}));
       toast(d.message||'Delete failed','error');

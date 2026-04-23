@@ -1,12 +1,34 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Chapter One</title>
-<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
-<link rel="stylesheet" href="index.css"/>
-<link rel="icon" type="image/png" href="icon.png" />
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Chapter One</title>
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="index.css"/>
+  <link rel="icon" type="image/png" href="icon.png" />
+  <style>
+    /* ── Admin Dropdown ── */
+    .admin-dropdown{position:relative;display:inline-block;}
+    .admin-dropdown-btn{background:rgba(37,99,235,.15);color:#60a5fa;border:1px solid rgba(37,99,235,.25);border-radius:10px;padding:0.4rem 0.85rem;font-size:0.82rem;font-family:var(--font-body);cursor:pointer;display:inline-flex;align-items:center;gap:0.4rem;transition:all .2s;}
+    .admin-dropdown-btn:hover{background:rgba(37,99,235,.25);}
+    .admin-dropdown-btn .arrow{font-size:0.65rem;transition:transform .2s;}
+    .admin-dropdown.open .admin-dropdown-btn .arrow{transform:rotate(180deg);}
+    .admin-dropdown-menu{display:none;position:absolute;top:calc(100% + 6px);right:0;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);min-width:190px;z-index:200;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,.35);}
+    .admin-dropdown.open .admin-dropdown-menu{display:block;}
+    .admin-dropdown-menu a{display:flex;align-items:center;gap:0.6rem;padding:0.65rem 1rem;font-size:0.83rem;color:var(--text2);text-decoration:none;transition:background .15s;}
+    .admin-dropdown-menu a:hover{background:var(--surface3);color:var(--text);}
+    .admin-dropdown-menu .menu-icon{font-size:1rem;width:20px;text-align:center;}
+    .admin-dropdown-menu .menu-divider{height:1px;background:var(--border);margin:4px 0;}
+
+    /* ── Pagination ── */
+    .pagination{display:flex;align-items:center;justify-content:center;gap:0.4rem;margin-top:2rem;flex-wrap:wrap;}
+    .page-btn{background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text2);font-size:0.82rem;font-family:var(--font-body);padding:0.4rem 0.75rem;cursor:pointer;transition:all .2s;min-width:36px;}
+    .page-btn:hover{border-color:var(--accent);color:var(--text);}
+    .page-btn.active{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600;}
+    .page-btn:disabled{opacity:0.35;cursor:not-allowed;}
+    .page-info{font-size:0.78rem;color:var(--text3);margin:0 0.4rem;}
+  </style>
 </head>
 <body>
 
@@ -17,7 +39,20 @@
   <div class="nav-right">
     <span class="nav-user-tag" id="navUser" style="display:none"></span>
     <a href="/orders.html" class="nav-icon-btn" id="ordersBtn" style="display:none">Orders</a>
-    <a href="/admin-orders.html" class="nav-icon-btn" id="manageOrdersBtn" style="display:none">📋 Manage Orders</a>
+
+    <!-- Admin Tools Dropdown -->
+    <div class="admin-dropdown" id="adminDropdown" style="display:none">
+      <button class="admin-dropdown-btn" onclick="toggleAdminDropdown()">
+        ⚙️ Admin Tools <span class="arrow">▾</span>
+      </button>
+      <div class="admin-dropdown-menu">
+        <a href="/index.html"><span class="menu-icon">📚</span>Manage Catalog</a>
+        <a href="/admin-orders.html"><span class="menu-icon">📋</span>Manage Orders</a>
+        <div class="menu-divider"></div>
+        <a href="/admin-add-user.html"><span class="menu-icon">👤</span>Add User</a>
+      </div>
+    </div>
+
     <button class="nav-icon-btn" id="cartNavBtn" onclick="openCart()" style="display:none;position:relative">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
       Cart
@@ -58,12 +93,12 @@
   <div class="toolbar">
     <div class="search-wrap">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      <input type="text" id="searchInput" placeholder="Search titles, authors…" oninput="renderBooks()"/>
+      <input type="text" id="searchInput" placeholder="Search titles, authors…" oninput="resetPageAndRender()"/>
     </div>
-    <select class="pill" id="catFilter" onchange="renderBooks()">
+    <select class="pill" id="catFilter" onchange="resetPageAndRender()">
       <option value="">All Categories</option>
     </select>
-    <select class="pill" id="sortFilter" onchange="renderBooks()">
+    <select class="pill" id="sortFilter" onchange="resetPageAndRender()">
       <option value="title">A → Z</option>
       <option value="price-asc">Price ↑</option>
       <option value="price-desc">Price ↓</option>
@@ -74,6 +109,9 @@
   <div class="book-grid" id="bookGrid">
     <div class="state-box"><div class="s-icon">📚</div><p>Loading catalog…</p></div>
   </div>
+
+  <!-- Pagination -->
+  <div class="pagination" id="pagination"></div>
 </div>
 
 <!-- Book Detail Modal -->

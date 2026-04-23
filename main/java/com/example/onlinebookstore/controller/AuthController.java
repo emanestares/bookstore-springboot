@@ -63,4 +63,34 @@ public class AuthController {
             return ResponseEntity.status(404).body(Map.of("message", e.getMessage()));
         }
     }
+
+    /**
+     * POST /api/auth/admin/create-user
+     * Admin: create a new user account with an explicit role selection.
+     * Body: { name, email, password, admin: true/false }
+     * Header: X-User-Admin: true
+     */
+    @PostMapping("/admin/create-user")
+    public ResponseEntity<?> adminCreateUser(
+            @RequestBody User user,
+            @RequestHeader(value = "X-User-Admin", defaultValue = "false") String isAdmin) {
+
+        if (!"true".equals(isAdmin))
+            return ResponseEntity.status(403).body(Map.of("message", "Admin access required"));
+
+        if (user.getName() == null || user.getName().isBlank())
+            return ResponseEntity.badRequest().body(Map.of("message", "Name is required"));
+        if (user.getEmail() == null || user.getEmail().isBlank())
+            return ResponseEntity.badRequest().body(Map.of("message", "Email is required"));
+        if (user.getPassword() == null || user.getPassword().length() < 6)
+            return ResponseEntity.badRequest().body(Map.of("message", "Password must be at least 6 characters"));
+
+        try {
+            User saved = userService.register(user); // register handles BCrypt + duplicate check
+            saved.setPassword(null);
+            return ResponseEntity.ok(saved);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
 }
