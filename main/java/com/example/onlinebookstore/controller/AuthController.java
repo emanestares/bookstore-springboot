@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -47,7 +48,7 @@ public class AuthController {
 
     /**
      * GET /api/auth/users/{id}
-     * Admin: fetch a user's name and email by ID (password never returned).
+     * Admin: fetch a single user by ID.
      */
     @GetMapping("/users/{id}")
     public ResponseEntity<?> getUserById(
@@ -65,16 +66,51 @@ public class AuthController {
     }
 
     /**
+     * GET /api/auth/users
+     * Admin: fetch all users (passwords never returned).
+     */
+    @GetMapping("/users")
+    public ResponseEntity<?> getAllUsers(
+            @RequestHeader(value = "X-User-Admin", defaultValue = "false") String isAdmin) {
+        if (!"true".equals(isAdmin))
+            return ResponseEntity.status(403).body(Map.of("message", "Admin access required"));
+
+        List<User> users = userService.getAllUsers();
+        users.forEach(u -> u.setPassword(null));
+        return ResponseEntity.ok(users);
+    }
+
+    /**
+     * PUT /api/auth/users/{id}
+     * Admin: update a user's name, email, role, and optionally password.
+     */
+    @PutMapping("/users/{id}")
+    public ResponseEntity<?> updateUser(
+            @PathVariable Long id,
+            @RequestBody User updated,
+            @RequestHeader(value = "X-User-Admin", defaultValue = "false") String isAdmin) {
+        if (!"true".equals(isAdmin))
+            return ResponseEntity.status(403).body(Map.of("message", "Admin access required"));
+        try {
+            User saved = userService.updateUser(id, updated);
+            saved.setPassword(null);
+            return ResponseEntity.ok(saved);
+        } catch (RuntimeException e) {
+            String msg = e.getMessage() != null ? e.getMessage() : "";
+            if (msg.contains("not found"))
+                return ResponseEntity.status(404).body(Map.of("message", msg));
+            return ResponseEntity.badRequest().body(Map.of("message", msg));
+        }
+    }
+
+    /**
      * POST /api/auth/admin/create-user
-     * Admin: create a new user account with an explicit role selection.
-     * Body: { name, email, password, admin: true/false }
-     * Header: X-User-Admin: true
+     * Admin: create a new user account with explicit role selection.
      */
     @PostMapping("/admin/create-user")
     public ResponseEntity<?> adminCreateUser(
             @RequestBody User user,
             @RequestHeader(value = "X-User-Admin", defaultValue = "false") String isAdmin) {
-
         if (!"true".equals(isAdmin))
             return ResponseEntity.status(403).body(Map.of("message", "Admin access required"));
 
@@ -86,7 +122,7 @@ public class AuthController {
             return ResponseEntity.badRequest().body(Map.of("message", "Password must be at least 6 characters"));
 
         try {
-            User saved = userService.register(user); // register handles BCrypt + duplicate check
+            User saved = userService.register(user);
             saved.setPassword(null);
             return ResponseEntity.ok(saved);
         } catch (RuntimeException e) {
