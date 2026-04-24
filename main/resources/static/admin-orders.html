@@ -5,149 +5,39 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Chapter One — Admin: Orders</title>
   <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
-  <style>
-    :root{
-      --bg:#09090b;--surface:#111113;--surface2:#18181b;--surface3:#1f1f23;
-      --border:rgba(255,255,255,0.08);--accent:#2563eb;--accent-h:#1d4ed8;
-      --text:#fafafa;--text2:#a1a1aa;--text3:#52525b;
-      --danger:#ef4444;--success:#22c55e;--gold:#d4a944;
-      --warn:#f59e0b;
-      --font-head:'Lora',Georgia,serif;--font-body:'Inter',system-ui,sans-serif;
-      --radius:12px;
-    }
-    body.light{
-      --bg:#faf7f2;--surface:#fff;--surface2:#f5f0e8;--surface3:#ede8de;
-      --border:rgba(0,0,0,0.09);--text:#1a1a1a;--text2:#6b7280;--text3:#9ca3af;--gold:#b8860b;
-    }
-    *{margin:0;padding:0;box-sizing:border-box;}
-    body{background:var(--bg);font-family:var(--font-body);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased;transition:background .3s,color .3s;}
-
-    /* ── Nav ── */
-    .nav{position:sticky;top:0;z-index:100;height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 2rem;background:var(--bg);border-bottom:1px solid var(--border);backdrop-filter:blur(16px);}
-    .nav-logo{font-family:var(--font-head);font-size:1.5rem;font-weight:700;color:var(--text);text-decoration:none;letter-spacing:-0.02em;}
-    .nav-logo sup{font-size:0.55rem;font-family:var(--font-body);letter-spacing:0.12em;text-transform:uppercase;color:var(--text2);vertical-align:super;}
-    .nav-right{display:flex;align-items:center;gap:0.6rem;}
-    .nav-link{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:0.4rem 0.85rem;font-size:0.82rem;color:var(--text2);text-decoration:none;transition:all .2s;}
-    .nav-link:hover{color:var(--text);border-color:rgba(255,255,255,.15);}
-    .btn-text{background:none;border:none;color:var(--text3);font-size:0.82rem;cursor:pointer;padding:0.4rem 0.6rem;}
-    .btn-text:hover{color:var(--text);}
-    .theme-btn{font-size:0.9rem;padding:0.4rem 0.6rem;}
-    .admin-badge{font-size:0.68rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;background:rgba(37,99,235,.15);color:#60a5fa;border:1px solid rgba(37,99,235,.25);border-radius:9999px;padding:0.25rem 0.65rem;}
-
-    /* ── Layout ── */
-    .container{max-width:1100px;margin:0 auto;padding:2.5rem 2rem 4rem;}
-
-    /* ── Page Header ── */
-    .page-head{margin-bottom:2rem;display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:1rem;}
-    .head-left{}
-    .page-eyebrow{font-size:0.72rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--gold);margin-bottom:0.4rem;}
-    .page-title{font-family:var(--font-head);font-size:2rem;font-weight:700;letter-spacing:-0.02em;color:var(--text);}
-    .page-sub{font-size:0.88rem;color:var(--text2);margin-top:0.25rem;}
-
-    /* ── Stats bar ── */
-    .stats-bar{display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:2rem;}
-    .stat-chip{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:0.75rem 1.25rem;display:flex;flex-direction:column;gap:0.2rem;min-width:120px;}
-    .stat-num{font-family:var(--font-head);font-size:1.5rem;font-weight:700;color:var(--text);}
-    .stat-label{font-size:0.72rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--text3);}
-    .stat-chip.preparing .stat-num{color:#facc15;}
-    .stat-chip.deliver .stat-num{color:#60a5fa;}
-    .stat-chip.declined .stat-num{color:var(--danger);}
-
-    /* ── Filter toolbar ── */
-    .toolbar{display:flex;gap:0.7rem;flex-wrap:wrap;align-items:center;margin-bottom:1.5rem;}
-    .search-wrap{flex:1;min-width:200px;position:relative;}
-    .search-wrap svg{position:absolute;left:0.85rem;top:50%;transform:translateY(-50%);color:var(--text3);width:15px;height:15px;}
-    .search-wrap input{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:0.7rem 1rem 0.7rem 2.5rem;color:var(--text);font-size:0.88rem;font-family:var(--font-body);outline:none;transition:border-color .2s;}
-    .search-wrap input:focus{border-color:var(--accent);}
-    .search-wrap input::placeholder{color:var(--text3);}
-    select.pill{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:0.7rem 1rem;color:var(--text);font-size:0.83rem;font-family:var(--font-body);outline:none;cursor:pointer;transition:border-color .2s;}
-    select.pill:focus{border-color:var(--accent);}
-    select.pill option{background:var(--surface2);}
-    .count-tag{font-size:0.78rem;color:var(--text3);margin-left:auto;white-space:nowrap;}
-
-    /* ── Table ── */
-    .orders-table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;}
-    table{width:100%;border-collapse:collapse;}
-    thead tr{border-bottom:1px solid var(--border);}
-    thead th{font-size:0.7rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);padding:0.85rem 1.1rem;text-align:left;white-space:nowrap;}
-    tbody tr{border-bottom:1px solid var(--border);transition:background .15s;}
-    tbody tr:last-child{border-bottom:none;}
-    tbody tr:hover{background:var(--surface2);}
-    td{padding:0.9rem 1.1rem;font-size:0.85rem;color:var(--text);vertical-align:middle;}
-    .td-id{font-weight:600;font-size:0.8rem;color:var(--text2);}
-    .td-user{font-size:0.82rem;}
-    .td-user small{display:block;color:var(--text3);font-size:0.72rem;}
-    .td-date{color:var(--text3);font-size:0.78rem;white-space:nowrap;}
-    .td-total{font-family:var(--font-head);font-weight:700;}
-    .td-items{color:var(--text2);font-size:0.78rem;}
-
-    /* ── Status pill ── */
-    .status-pill{font-size:0.66rem;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;padding:0.26rem 0.65rem;border-radius:9999px;white-space:nowrap;}
-    .s-PREPARING {background:rgba(234,179,8,.12);color:#facc15;border:1px solid rgba(234,179,8,.2);}
-    .s-TO_DELIVER{background:rgba(37,99,235,.12);color:#60a5fa;border:1px solid rgba(37,99,235,.2);}
-    .s-DECLINED  {background:rgba(239,68,68,.1);color:var(--danger);border:1px solid rgba(239,68,68,.2);}
-
-    /* ── Status select ── */
-    .status-select{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:0.38rem 0.6rem;color:var(--text);font-size:0.78rem;font-family:var(--font-body);outline:none;cursor:pointer;transition:border-color .2s;}
-    .status-select:focus{border-color:var(--accent);}
-    .status-select option{background:var(--surface2);}
-    .updating{opacity:0.5;pointer-events:none;}
-
-    /* ── Items preview ── */
-    .items-list{display:flex;flex-direction:column;gap:3px;}
-    .item-line{display:flex;align-items:center;gap:5px;font-size:0.78rem;color:var(--text2);}
-    .item-spine{width:6px;height:18px;border-radius:2px;flex-shrink:0;}
-    .items-more{font-size:0.72rem;color:var(--text3);margin-top:2px;}
-
-    /* ── Expand row ── */
-    .expand-btn{background:none;border:none;color:var(--text3);cursor:pointer;font-size:0.8rem;padding:0.2rem 0.4rem;border-radius:6px;transition:all .2s;}
-    .expand-btn:hover{background:var(--surface3);color:var(--text);}
-    .detail-row{display:none;}
-    .detail-row.open{display:table-row;}
-    .detail-cell{padding:0 1.1rem 1rem!important;background:var(--surface2);}
-    .detail-inner{border:1px solid var(--border);border-radius:10px;overflow:hidden;}
-    .detail-head{display:grid;grid-template-columns:1fr auto auto;gap:1rem;padding:0.6rem 1rem;background:var(--surface3);font-size:0.7rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);}
-    .detail-item{display:grid;grid-template-columns:1fr auto auto;gap:1rem;padding:0.6rem 1rem;border-top:1px solid var(--border);font-size:0.82rem;align-items:center;}
-    .di-name{font-family:var(--font-head);color:var(--text);}
-    .di-qty{color:var(--text3);text-align:right;}
-    .di-sub{font-weight:600;color:var(--text);text-align:right;}
-
-    /* ── Empty / Loading ── */
-    .state-row td{text-align:center;padding:5rem 1rem;color:var(--text3);}
-    .state-icon{font-size:2.5rem;display:block;margin-bottom:0.75rem;opacity:.6;}
-
-    /* ── Toast ── */
-    .toast{position:fixed;bottom:1.5rem;right:1.5rem;min-width:220px;max-width:320px;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:0.8rem 1.1rem;border-radius:var(--radius);font-size:0.84rem;z-index:999;opacity:0;transform:translateY(6px);transition:all .3s;pointer-events:none;}
-    .toast.show{opacity:1;transform:translateY(0);}
-    .toast.success{border-left:3px solid var(--success);}
-    .toast.error{border-left:3px solid var(--danger);}
-    .toast.info{border-left:3px solid var(--accent);}
-
-    @media(max-width:768px){
-      .container{padding:1.5rem 1rem 3rem;}
-      .page-head{flex-direction:column;align-items:flex-start;}
-      thead th:nth-child(3),td:nth-child(3),thead th:nth-child(5),td:nth-child(5){display:none;}
-      .stats-bar{gap:0.5rem;}
-      .stat-chip{min-width:90px;padding:0.6rem 0.9rem;}
-    }
-  </style>
-  <link rel="icon" type="image/png" href="icon.png" />
+  <link rel="icon" type="image/png" href="icon.png"/>
+  <link rel="stylesheet" href="admin.css"/>
+  <link rel="stylesheet" href="admin-orders.css"/>
 </head>
 <body>
 
+<!-- ── Navigation ── -->
 <nav class="nav">
   <a href="/index.html" class="nav-logo">Chapter<sup>One</sup></a>
   <div class="nav-right">
     <span class="admin-badge">Admin</span>
-    <div class="admin-dropdown" id="adminDropdown" style="position:relative;display:inline-block"><button style="background:rgba(37,99,235,.15);color:#60a5fa;border:1px solid rgba(37,99,235,.25);border-radius:10px;padding:0.4rem 0.85rem;font-size:0.82rem;font-family:var(--font-body);cursor:pointer;display:inline-flex;align-items:center;gap:0.4rem" onclick="document.getElementById('adminDropdown').classList.toggle('open')">⚙️ Admin Tools ▾</button><div id="ddMenu" style="display:none;position:absolute;top:calc(100%% + 6px);right:0;background:var(--surface2);border:1px solid var(--border);border-radius:12px;min-width:190px;z-index:200;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,.35)"><a href="/index.html" style="display:flex;align-items:center;gap:0.6rem;padding:0.65rem 1rem;font-size:0.83rem;color:var(--text2);text-decoration:none">📚 Manage Catalog</a><a href="/admin-orders.html" style="display:flex;align-items:center;gap:0.6rem;padding:0.65rem 1rem;font-size:0.83rem;color:var(--text);text-decoration:none;background:var(--surface3)">📋 Manage Orders</a><hr style="border:none;border-top:1px solid var(--border);margin:4px 0"/><a href="/admin-users.html" style="display:flex;align-items:center;gap:0.6rem;padding:0.65rem 1rem;font-size:0.83rem;color:var(--text2);text-decoration:none">👥 User Dashboard</a><a href="/admin-add-user.html" style="display:flex;align-items:center;gap:0.6rem;padding:0.65rem 1rem;font-size:0.83rem;color:var(--text2);text-decoration:none">👤 Add User</a></div></div><a href="/index.html" class="nav-link">← Catalog</a>
+
+    <div class="admin-dropdown" id="adminDropdown">
+      <button class="admin-dropdown-btn" onclick="toggleAdminDropdown()">
+        ⚙️ Admin Tools <span class="arrow">▾</span>
+      </button>
+      <div class="admin-dropdown-menu">
+        <a href="/index.html"><span class="menu-icon">📚</span>Manage Catalog</a>
+        <a href="/admin-orders.html" class="active"><span class="menu-icon">📋</span>Manage Orders</a>
+        <div class="menu-divider"></div>
+        <a href="/admin-users.html"><span class="menu-icon">👥</span>User Management</a>
+      </div>
+    </div>
+
     <button class="btn-text" onclick="logout()">Sign out</button>
-    <button class="nav-link theme-btn" id="themeBtn" onclick="toggleTheme()">🌓</button>
+    <button class="nav-link" id="themeBtn" onclick="toggleTheme()" style="font-size:.9rem;padding:.4rem .6rem">🌓</button>
   </div>
 </nav>
 
+<!-- ── Main Content ── -->
 <div class="container">
   <div class="page-head">
-    <div class="head-left">
+    <div>
       <div class="page-eyebrow">Admin Panel</div>
       <div class="page-title">Order Management</div>
       <div class="page-sub">View and update the status of all customer orders</div>
@@ -161,7 +51,9 @@
   <!-- Toolbar -->
   <div class="toolbar">
     <div class="search-wrap">
-      <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 3a6 6 0 100 12A6 6 0 009 3zM1 9a8 8 0 1114.32 4.906l3.387 3.387a1 1 0 01-1.414 1.414l-3.387-3.387A8 8 0 011 9z" clip-rule="evenodd"/></svg>
+      <svg viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M9 3a6 6 0 100 12A6 6 0 009 3zM1 9a8 8 0 1114.32 4.906l3.387 3.387a1 1 0 01-1.414 1.414l-3.387-3.387A8 8 0 011 9z" clip-rule="evenodd"/>
+      </svg>
       <input type="text" id="searchInput" placeholder="Search by order ID or customer…" oninput="renderTable()"/>
     </div>
     <select class="pill" id="statusFilter" onchange="renderTable()">
@@ -177,237 +69,28 @@
   <div class="orders-table-wrap">
     <table id="ordersTable">
       <thead>
-      <tr>
-        <th></th>
-        <th>Order</th>
-        <th>Customer</th>
-        <th>Date</th>
-        <th>Items</th>
-        <th>Total</th>
-        <th>Status</th>
-      </tr>
+        <tr>
+          <th class="no-sort"></th>
+          <th>Order</th>
+          <th>Customer</th>
+          <th>Date</th>
+          <th>Items</th>
+          <th>Total</th>
+          <th>Status</th>
+        </tr>
       </thead>
       <tbody id="tableBody">
-      <tr class="state-row"><td colspan="7"><span class="state-icon">⏳</span>Loading orders…</td></tr>
+        <tr class="state-row">
+          <td colspan="7"><span class="state-icon">⏳</span>Loading orders…</td>
+        </tr>
       </tbody>
     </table>
   </div>
 </div>
 
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<script>
-  'use strict';
-  let allOrders = [];
-  const userCache = {}; // { userId: { name, email } }
-  const spineColors = ['#1e3a5f','#2d1b4e','#0f3460','#3d2314','#0d2137','#3d1a2d','#1a3a2d','#1a1a2e'];
-
-  function getUser(){ try{ return JSON.parse(localStorage.getItem('user')); }catch{ return null; } }
-  function logout(){ localStorage.removeItem('user'); localStorage.removeItem('cart'); window.location.href='/login.html'; }
-  function esc(s){ const d=document.createElement('div'); d.textContent=s??''; return d.innerHTML; }
-
-  async function fetchUserName(userId) {
-    if (userCache[userId]) return userCache[userId];
-    try {
-      const res = await fetch(`/api/auth/users/${userId}`, { headers: {'X-User-Admin':'true'} });
-      if (!res.ok) { userCache[userId] = { name: `User #${userId}`, email: '' }; return userCache[userId]; }
-      const data = await res.json();
-      userCache[userId] = { name: data.name || `User #${userId}`, email: data.email || '' };
-    } catch {
-      userCache[userId] = { name: `User #${userId}`, email: '' };
-    }
-    return userCache[userId];
-  }
-  function spineColor(t){ return spineColors[(t?.charCodeAt(0)||0)%spineColors.length]; }
-
-  function initTheme(){
-    if(localStorage.getItem('theme')==='light') document.body.classList.add('light');
-    updateThemeBtn();
-  }
-  function toggleTheme(){
-    document.body.classList.toggle('light');
-    localStorage.setItem('theme', document.body.classList.contains('light')?'light':'dark');
-    updateThemeBtn();
-  }
-  function updateThemeBtn(){
-    const b=document.getElementById('themeBtn');
-    if(b) b.textContent=document.body.classList.contains('light')?'🌙':'🌓';
-  }
-
-  function formatDate(d){
-    if(!d) return '—';
-    return new Date(d).toLocaleString('en-PH',{year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
-  }
-
-  function statusLabel(s){
-    const map = { PREPARING: 'Preparing', TO_DELIVER: 'To Deliver', DECLINED: 'Declined' };
-    return map[s] || s;
-  }
-
-  async function loadOrders(){
-    const user = getUser();
-    if(!user || !user.admin){ window.location.href='/index.html'; return; }
-
-    const tbody = document.getElementById('tableBody');
-    tbody.innerHTML = `<tr class="state-row"><td colspan="7"><span class="state-icon">⏳</span>Loading orders…</td></tr>`;
-
-    try{
-      const res = await fetch('/api/orders/all', { headers:{'X-User-Admin':'true'} });
-      if(!res.ok) throw new Error('Forbidden');
-      allOrders = await res.json();
-      // Pre-fetch all unique user names in parallel
-      const uniqueUserIds = [...new Set(allOrders.map(o => o.userId))];
-      await Promise.all(uniqueUserIds.map(id => fetchUserName(id)));
-      buildStats();
-      renderTable();
-    } catch(e){
-      tbody.innerHTML = `<tr class="state-row"><td colspan="7"><span class="state-icon">⚠️</span>Could not load orders. Make sure the server is running.</td></tr>`;
-    }
-  }
-
-  function buildStats(){
-    const total   = allOrders.length;
-    const prep    = allOrders.filter(o=>o.status==='PREPARING').length;
-    const deliver = allOrders.filter(o=>o.status==='TO_DELIVER').length;
-    const declined= allOrders.filter(o=>o.status==='DECLINED').length;
-    const revenue = allOrders.filter(o=>o.status!=='DECLINED').reduce((s,o)=>s+o.totalAmount,0);
-
-    document.getElementById('statsBar').innerHTML = `
-      <div class="stat-chip"><span class="stat-num">${total}</span><span class="stat-label">Total Orders</span></div>
-      <div class="stat-chip preparing"><span class="stat-num">${prep}</span><span class="stat-label">Preparing</span></div>
-      <div class="stat-chip deliver"><span class="stat-num">${deliver}</span><span class="stat-label">To Deliver</span></div>
-      <div class="stat-chip declined"><span class="stat-num">${declined}</span><span class="stat-label">Declined</span></div>
-      <div class="stat-chip"><span class="stat-num">₱${revenue.toLocaleString('en-PH',{minimumFractionDigits:2,maximumFractionDigits:2})}</span><span class="stat-label">Revenue</span></div>
-    `;
-  }
-
-  function renderTable(){
-    const kw     = document.getElementById('searchInput').value.toLowerCase().trim();
-    const status = document.getElementById('statusFilter').value;
-
-    const filtered = allOrders.filter(o=>{
-      const userName = (userCache[o.userId]?.name || '').toLowerCase();
-      const userEmail = (userCache[o.userId]?.email || '').toLowerCase();
-      const matchKw = !kw || String(o.id).includes(kw) || userName.includes(kw) || userEmail.includes(kw);
-      const matchStatus = !status || o.status === status;
-      return matchKw && matchStatus;
-    });
-
-    document.getElementById('countTag').textContent = `${filtered.length} order${filtered.length!==1?'s':''}`;
-
-    const tbody = document.getElementById('tableBody');
-    if(!filtered.length){
-      tbody.innerHTML = `<tr class="state-row"><td colspan="7"><span class="state-icon">📭</span>No orders match your filter.</td></tr>`;
-      return;
-    }
-
-    tbody.innerHTML = filtered.map(o => {
-      const items  = o.items || [];
-      const preview= items.slice(0,2);
-      const more   = items.length - 2;
-      return `
-      <tr id="row-${o.id}">
-        <td style="width:32px;padding-right:0">
-          <button class="expand-btn" id="expand-${o.id}" onclick="toggleDetail(${o.id})" title="View items">▶</button>
-        </td>
-        <td class="td-id">#${o.id}</td>
-        <td class="td-user">
-          <strong>${esc(userCache[o.userId]?.name || "User #" + o.userId)}</strong>
-          <small>${esc(userCache[o.userId]?.email || "")}</small>
-        </td>
-        <td class="td-date">${formatDate(o.orderDate)}</td>
-        <td class="td-items">
-          <div class="items-list">
-            ${preview.map(i=>`
-              <div class="item-line">
-                <div class="item-spine" style="background:${spineColor(i.bookTitle)}"></div>
-                <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:160px">${esc(i.bookTitle||'Book')}</span>
-                <span style="color:var(--text3)">×${i.quantity}</span>
-              </div>`).join('')}
-            ${more>0?`<div class="items-more">+${more} more</div>`:''}
-          </div>
-        </td>
-        <td class="td-total">₱${Number(o.totalAmount||0).toLocaleString('en-PH',{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
-        <td>
-          <select class="status-select" id="sel-${o.id}" onchange="updateStatus(${o.id},this)">
-            <option value="PREPARING"  ${o.status==='PREPARING' ?'selected':''}>🟡 Preparing</option>
-            <option value="TO_DELIVER" ${o.status==='TO_DELIVER'?'selected':''}>🔵 To Deliver</option>
-            <option value="DECLINED"   ${o.status==='DECLINED'  ?'selected':''}>🔴 Declined</option>
-          </select>
-        </td>
-      </tr>
-      <tr class="detail-row" id="detail-${o.id}">
-        <td class="detail-cell" colspan="7">
-          <div class="detail-inner">
-            <div class="detail-head">
-              <span>Book</span><span>Qty</span><span>Subtotal</span>
-            </div>
-            ${items.map(i=>`
-              <div class="detail-item">
-                <div class="di-name">${esc(i.bookTitle||'—')}</div>
-                <div class="di-qty">×${i.quantity}</div>
-                <div class="di-sub">₱${(Number(i.priceAtPurchase||0)*i.quantity).toFixed(2)}</div>
-              </div>`).join('')}
-          </div>
-        </td>
-      </tr>`;
-    }).join('');
-  }
-
-  function toggleDetail(id){
-    const detailRow = document.getElementById(`detail-${id}`);
-    const btn       = document.getElementById(`expand-${id}`);
-    const open      = detailRow.classList.toggle('open');
-    btn.textContent = open ? '▼' : '▶';
-  }
-
-  async function updateStatus(orderId, selectEl){
-    const newStatus = selectEl.value;
-    selectEl.classList.add('updating');
-
-    try{
-      const res = await fetch(`/api/orders/${orderId}/status`, {
-        method:'PATCH',
-        headers:{'Content-Type':'application/json','X-User-Admin':'true'},
-        body: JSON.stringify({ status: newStatus })
-      });
-      const data = await res.json();
-      if(!res.ok){ toast(data.message||'Update failed','error'); selectEl.classList.remove('updating'); return; }
-
-      // Update local data
-      const order = allOrders.find(o=>o.id===orderId);
-      if(order) order.status = newStatus;
-      buildStats();
-      toast(`Order #${orderId} → ${statusLabel(newStatus)}`,'success');
-    } catch{
-      toast('Network error','error');
-    }
-    selectEl.classList.remove('updating');
-  }
-
-  let toastTimer;
-  function toast(msg,type=''){
-    clearTimeout(toastTimer);
-    const el=document.getElementById('toast');
-    el.textContent=msg;
-    el.className=`toast ${type} show`;
-    toastTimer=setTimeout(()=>el.className='toast',3500);
-  }
-
-  initTheme();
-  loadOrders();
-</script>
-<script>
-  document.addEventListener('click', e => {
-    const dd = document.getElementById('adminDropdown');
-    const m  = document.getElementById('ddMenu');
-    if(dd && !dd.contains(e.target) && m) m.style.display = 'none';
-  });
-  document.querySelector('#adminDropdown button').addEventListener('click', function(e){
-    e.stopPropagation();
-    const m = document.getElementById('ddMenu');
-    m.style.display = m.style.display === 'block' ? 'none' : 'block';
-  });
-</script>
+<script src="admin-shared.js"></script>
+<script src="admin-orders.js"></script>
 </body>
 </html>
