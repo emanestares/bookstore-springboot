@@ -41,7 +41,7 @@
     <div>
       <div class="page-eyebrow">Admin Panel</div>
       <div class="page-title">User Management</div>
-      <div class="page-sub">View, edit, and create user accounts</div>
+      <div class="page-sub">Click on a user to view their orders</div>
     </div>
     <button class="nav-link" onclick="loadUsers()">↻ Refresh</button>
   </div>
@@ -75,19 +75,18 @@
     <div class="table-wrap">
       <table>
         <thead>
-          <tr>
-            <th onclick="setSort('id')"    id="th-id">   ID <span id="si-id"></span></th>
-            <th class="no-sort" style="width:36px"></th>
-            <th onclick="setSort('name')"  id="th-name"> Name <span id="si-name"></span></th>
-            <th onclick="setSort('email')" id="th-email">Email <span id="si-email"></span></th>
-            <th class="no-sort">Role</th>
-            <th class="no-sort"></th>
-          </tr>
+        <tr>
+          <th onclick="setSort('id')"    id="th-id">ID <span id="si-id"></span></th>
+          <th class="no-sort" style="width:36px"></th>
+          <th onclick="setSort('name')"  id="th-name">Name <span id="si-name"></span></th>
+          <th onclick="setSort('email')" id="th-email">Email <span id="si-email"></span></th>
+          <th class="no-sort">Role</th>
+        </tr>
         </thead>
         <tbody id="tableBody">
-          <tr class="state-row">
-            <td colspan="6"><span class="state-icon">⏳</span>Loading users…</td>
-          </tr>
+        <tr class="state-row">
+          <td colspan="5"><span class="state-icon">⏳</span>Loading users…</td>
+        </tr>
         </tbody>
       </table>
     </div>
@@ -151,55 +150,17 @@
 
 </div><!-- /.container -->
 
-<!-- ── Edit User Modal ── -->
-<div class="modal-overlay" id="editModal" role="dialog" aria-modal="true" aria-labelledby="editModalTitle">
-  <div class="modal-card">
+<!-- ── User Orders Modal ── -->
+<div class="modal-overlay" id="ordersModal" role="dialog" aria-modal="true" aria-labelledby="ordersModalTitle">
+  <div class="modal-card" style="max-width:680px;width:92%">
     <div class="modal-head">
-      <h3 id="editModalTitle">Edit User</h3>
-      <button class="modal-close-btn" onclick="closeEditModal()" aria-label="Close">✕</button>
+      <div>
+        <h3 id="ordersModalTitle">Orders</h3>
+        <div style="font-size:0.8rem;color:var(--text-secondary);margin-top:2px" id="ordersModalSub"></div>
+      </div>
+      <button class="modal-close-btn" onclick="closeOrdersModal()" aria-label="Close">✕</button>
     </div>
-    <div class="modal-body">
-      <input type="hidden" id="editUserId"/>
-
-      <div class="modal-user-info">
-        <div class="modal-avatar" id="editAvatar"></div>
-        <div>
-          <div class="modal-user-name" id="editAvatarName"></div>
-          <div class="modal-user-id"   id="editAvatarId"></div>
-        </div>
-      </div>
-
-      <div class="modal-field">
-        <label>Full Name *</label>
-        <input type="text"     id="editName"     placeholder="Full name"/>
-      </div>
-      <div class="modal-field">
-        <label>Email Address *</label>
-        <input type="email"    id="editEmail"    placeholder="email@example.com"/>
-      </div>
-      <div class="modal-field">
-        <label>New Password</label>
-        <input type="password" id="editPassword" placeholder="Leave blank to keep current"/>
-        <span class="hint">Min. 6 characters if changing</span>
-      </div>
-      <div class="modal-field">
-        <label>Role *</label>
-        <div class="role-toggle">
-          <div class="role-option">
-            <input type="radio" name="editRole" id="editRoleUser"  value="user"/>
-            <label for="editRoleUser">👤 User</label>
-          </div>
-          <div class="role-option">
-            <input type="radio" name="editRole" id="editRoleAdmin" value="admin"/>
-            <label for="editRoleAdmin">🛡️ Admin</label>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="modal-foot">
-      <button class="btn-cancel" onclick="closeEditModal()">Cancel</button>
-      <button class="btn-save" id="saveUserBtn" onclick="saveUserEdit()">Save Changes</button>
-    </div>
+    <div class="modal-body" id="ordersModalBody" style="max-height:60vh;overflow-y:auto;padding-top:.5rem"></div>
   </div>
 </div>
 
