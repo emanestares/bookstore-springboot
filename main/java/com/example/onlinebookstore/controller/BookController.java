@@ -64,8 +64,8 @@ public class BookController {
             return ResponseEntity.badRequest().body(Map.of("message", "Title is required"));
         if (book.getAuthor() == null || book.getAuthor().isBlank())
             return ResponseEntity.badRequest().body(Map.of("message", "Author is required"));
-        if (book.getPrice() < 0)
-            return ResponseEntity.badRequest().body(Map.of("message", "Price cannot be negative"));
+        if (book.getPrice() <= 0)
+            return ResponseEntity.badRequest().body(Map.of("message", "Price cannot be negative or zero"));
 
         return ResponseEntity.ok(bookService.addBook(book));
     }
